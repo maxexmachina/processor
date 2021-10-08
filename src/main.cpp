@@ -1,11 +1,54 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h> #include <errno.h>
+#include <string.h>
+#include <errno.h>
 
 #include "../include/fileUtils.h"
 #include "../include/split.h"
 #include "../include/compare.h"
 #include "../include/stack.h"
+
+struct command {
+    const char text[16];
+    long long int num;
+};
+
+int processCommand(Stack *stack, command *cmd, int ret) {
+    if (mystrcmp(cmd->text, "push") == 0) {
+        if (ret != 2) {
+            printf("expected a number to push\n");
+            return 0;
+        }
+        StackPush(stack, &cmd->num);
+        StackDump(stack, "push");
+    } else if (mystrcmp(cmd->text, "pop") == 0) {
+        if (ret != 1) {
+            printf("only expected a pop word\n");
+            return 0;
+        }
+        long long temp = 0;
+        StackPop(stack, &temp);
+        StackDump(stack, "pop");
+    } else if (mystrcmp(cmd->text, "dmp") == 0) {
+        if (ret != 1) {
+            printf("only expected a dmp word\n");
+            return 0;
+        }
+        StackDump(stack, "Dump command");
+    } else if (mystrcmp(cmd->text, "ver") == 0) {
+        if (ret != 1) {
+            printf("only expected a ver word\n");
+            return 0;
+        }
+        int ret = StackError(stack);
+        if (ret != 0) {
+            printf("Stack verification failed: %d\n", ret);
+            StackDump(stack, "Verificator failed");
+            return 0;
+        }
+    }
+    return 1;
+}
 
 int main(int argc, char **argv) {
     if (argc != 2) {
@@ -24,20 +67,15 @@ int main(int argc, char **argv) {
     StackCtor(&stack, sizeof(elem_t), 10);
 
     for (size_t i = 0; i < text.numLines; ++i) {
-        const char *command = "";
-        long long int number = 0;
-        int ret = sscanf(text.lines[i].ptr, "%ms %lld", &command, &number);
-        if (mystrcmp(command, "push") == 0) {
-            if (ret != 2) {
-                printf("expected a number to push\n");
-                return EXIT_FAILURE;
-            }
-            printf("number : %lld\n", number);
-            StackPush(&stack, &number);
-            long long int numCheck = 0;
-            StackTop(&stack, &numCheck);
-            printf("after push : %lld\n", numCheck);
-            free((char *)command);
+
+        command cur = {};
+        int ret = sscanf(text.lines[i].ptr, "%s %lld", &cur.text, &cur.num);
+        if (ret == 0) {
+            printf("Failed to scan a command : %s\n", strerror(errno));
+            return EXIT_FAILURE;
+        }
+        if (processCommand(&stack, &cur, ret) == 0) {
+            return EXIT_FAILURE;
         }
     }
     printf("num lines: %zu\n", text.numLines);

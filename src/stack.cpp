@@ -384,6 +384,10 @@ void StackPop(Stack *stack, void *dest, int *err) {
 
     myMemCpy(dest, getIndexAdress(stack->data, --stack->size, stack->elemSize),
              stack->elemSize);
+#if DEBUG_MODE > 0
+    elem_t poisoned = getPoisonedInstance();
+    myMemCpy(getIndexAdress(stack->data, stack->size, stack->elemSize), &poisoned, stack->elemSize);
+#endif
 #if DEBUG_MODE > 2
     stack->hash = StackHash(stack);
 #endif
