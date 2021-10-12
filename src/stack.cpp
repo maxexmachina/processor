@@ -302,6 +302,13 @@ int StackResize(Stack *stack, size_t size) {
 #endif
     stack->capacity = newCap;
 
+#if DEBUG_MODE > 0
+    for (size_t i = stack->size; i < stack->capacity; ++i) {
+        elem_t poisoned = getPoisonedInstance();
+        myMemCpy(getIndexAdress(stack->data, i, stack->elemSize), &poisoned, stack->elemSize);
+    }
+#endif
+
 #if DEBUG_MODE > 2
     stack->hash = StackHash(stack);
 #endif
