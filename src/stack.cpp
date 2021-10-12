@@ -5,7 +5,6 @@
 #include <string.h>
 #include <limits.h>
 
-#include "../include/mymemcpy.h"
 #include "../include/stack.h"
 #include "../include/log.h"
 
@@ -305,7 +304,7 @@ int StackResize(Stack *stack, size_t size) {
 #if DEBUG_MODE > 0
     for (size_t i = stack->size; i < stack->capacity; ++i) {
         elem_t poisoned = getPoisonedInstance();
-        myMemCpy(getIndexAdress(stack->data, i, stack->elemSize), &poisoned, stack->elemSize);
+        memcpy(getIndexAdress(stack->data, i, stack->elemSize), &poisoned, stack->elemSize);
     }
 #endif
 
@@ -325,7 +324,7 @@ void StackDtor(Stack *stack) {
 
     elem_t poison = getPoisonedInstance();
     for (size_t i = 0; i < stack->capacity; i++) {
-        myMemCpy(getIndexAdress(stack->data, i, stack->elemSize),
+        memcpy(getIndexAdress(stack->data, i, stack->elemSize),
                  &poison, stack->elemSize);
     }
     stack->size = STK_SIZE_POISON;
@@ -364,7 +363,7 @@ void StackPush(Stack *stack, void *src, int *err) {
             return;
         }
     }
-    myMemCpy(getIndexAdress(stack->data, stack->size++, stack->elemSize),
+    memcpy(getIndexAdress(stack->data, stack->size++, stack->elemSize),
              src, stack->elemSize);
 #if DEBUG_MODE > 2
     stack->hash = StackHash(stack);
@@ -389,11 +388,11 @@ void StackPop(Stack *stack, void *dest, int *err) {
         return;
     }
 
-    myMemCpy(dest, getIndexAdress(stack->data, --stack->size, stack->elemSize),
+    memcpy(dest, getIndexAdress(stack->data, --stack->size, stack->elemSize),
              stack->elemSize);
 #if DEBUG_MODE > 0
     elem_t poisoned = getPoisonedInstance();
-    myMemCpy(getIndexAdress(stack->data, stack->size, stack->elemSize), &poisoned, stack->elemSize);
+    memcpy(getIndexAdress(stack->data, stack->size, stack->elemSize), &poisoned, stack->elemSize);
 #endif
 #if DEBUG_MODE > 2
     stack->hash = StackHash(stack);
@@ -424,7 +423,7 @@ void StackTop(Stack *stack, void *dest, int *err) {
         } 
         return;
     }
-    myMemCpy(dest, getIndexAdress(stack->data, stack->size - 1, stack->elemSize),
+    memcpy(dest, getIndexAdress(stack->data, stack->size - 1, stack->elemSize),
              stack->elemSize);
 
 #if DEBUG_MODE > 0 
