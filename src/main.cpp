@@ -5,7 +5,6 @@
 
 #include "../include/fileUtils.h"
 #include "../include/split.h"
-#include "../include/compare.h"
 #include "../include/stack.h"
 
 struct command {
@@ -14,14 +13,14 @@ struct command {
 };
 
 int processCommand(Stack *stack, command *cmd, int ret) {
-    if (mystrcmp(cmd->text, "push") == 0) {
+    if (strcmp(cmd->text, "push") == 0) {
         if (ret != 2) {
             printf("expected a number to push\n");
             return 0;
         }
         StackPush(stack, &cmd->num);
         StackDump(stack, "push");
-    } else if (mystrcmp(cmd->text, "pop") == 0) {
+    } else if (strcmp(cmd->text, "pop") == 0) {
         if (ret != 1) {
             printf("only expected a pop word\n");
             return 0;
@@ -29,13 +28,13 @@ int processCommand(Stack *stack, command *cmd, int ret) {
         long long temp = 0;
         StackPop(stack, &temp);
         StackDump(stack, "pop");
-    } else if (mystrcmp(cmd->text, "dmp") == 0) {
+    } else if (strcmp(cmd->text, "dmp") == 0) {
         if (ret != 1) {
             printf("only expected a dmp word\n");
             return 0;
         }
         StackDump(stack, "Dump command");
-    } else if (mystrcmp(cmd->text, "ver") == 0) {
+    } else if (strcmp(cmd->text, "ver") == 0) {
         if (ret != 1) {
             printf("only expected a ver word\n");
             return 0;
