@@ -45,6 +45,7 @@ int run(const char *filePath) {
                 free(fileBuf);
                 return 0;
                 break;
+#if DEBUG_MODE > 0 
             case CMD_VER:
                 ASSERT_OK(&stack);
                 ++pc;
@@ -53,6 +54,7 @@ int run(const char *filePath) {
                 StackDump(&stack, "DMP processor command");
                 ++pc;
                 break;
+#endif
             case CMD_OUT:
                 {
                     elem_t topElem = 0;
