@@ -1,15 +1,24 @@
 #ifndef PROCESSOR_H
 #define PROCESSOR_H
 
+#include "stack.h"
+
 const unsigned int PROCESSOR_VER = 1;
 
 static const char *TYPE_TAG = "JEFF";
 
+struct Processor {
+    Stack stack;
+    char *code;
+    size_t codeSize;
+    size_t ip;
+};
+
 enum AlgebraicOp : int {
-    ADD = 0,
-    SUB = 1,
-    MUL = 2,
-    DIV = 3,
+    OP_ADD = 0,
+    OP_SUB = 1,
+    OP_MUL = 2,
+    OP_DIV = 3,
 };
 
 enum ProcessorError : int {
@@ -18,8 +27,13 @@ enum ProcessorError : int {
     ERR_WRNG_CMD_SET = 3,
     ERR_UNDEF_CMD = 4,
     ERR_DIV_ZERO = 5,
+    ERR_ALG_FLR = 6,
+    ERR_UNDEF_ALG_OP = 7,
+    ERR_STK_ERR = 8,
 };
 
-int run(const char *filePath);
+int ProcessorRun(Processor *proc);
+
+int ProcessorInit(Processor *proc, const char *codePath);
 
 #endif

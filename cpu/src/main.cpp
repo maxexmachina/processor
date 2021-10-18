@@ -14,7 +14,14 @@ int main(int argc, char **argv) {
         return EXIT_FAILURE;
     }
     const char *programPath = argv[1];
-    int ret = run(programPath);
+    Processor proc = {};
+
+    int ret = ProcessorInit(&proc, programPath);
+    if (ret != 0) {
+        return ret;
+    }
+
+    ret = ProcessorRun(&proc);
     if (ret != 0) {
         return ret;
     }
