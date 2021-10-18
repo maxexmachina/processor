@@ -12,7 +12,7 @@
     #endif
 #endif
 
-#define DEBUG_MODE 0
+#define DEBUG_MODE 3 
 
 //------------------ User type -------------
 

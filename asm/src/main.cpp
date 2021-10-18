@@ -6,16 +6,18 @@
 
 int main(int argc, char **argv) {
     if (argc == 2) {
-        if (compile(argv[1], "compiled.jf") == 0) {
-            return EXIT_FAILURE;
+        int ret = compile(argv[1], "compiled.jf");
+        if (ret != 0) {
+            return ret;
         }
     } else if (argc == 4) {
         if (strcmp(argv[2], "-c") != 0) {
             printf("Unexpected flag : %s\n", argv[2]);
             return EXIT_FAILURE;
         }
-        if (compile(argv[1], argv[3]) == 0) {
-            return EXIT_FAILURE;
+        int ret = compile(argv[1], argv[3]);
+        if (ret != 0) {
+            return ret;
         }
     } else {
         printf("Unexpected number of arguments\n");

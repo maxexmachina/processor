@@ -8,6 +8,19 @@
 #include "../include/fileUtils.h"
 #include "../include/stack.h"
 
+int algebaicOperation(Stack *stack, AlgebraicOp op) {
+    elem_t lhs = 0;
+    elem_t rhs = 0;
+    StackPop(stack, &rhs);
+    if (rhs == 0) {
+        printf("Cannot divide by zero\n");
+        return ERR_DIV_ZERO;
+    }
+    StackPop(stack, &lhs);
+    elem_t res = lhs / rhs;
+    StackPush(stack, &res); 
+}
+
 int run(const char *filePath) {
     size_t bufSize = 0;
     char *fileBuf = readFile(filePath, &bufSize);
@@ -117,7 +130,7 @@ int run(const char *filePath) {
                         return ERR_DIV_ZERO;
                     }
                     StackPop(&stack, &lhs);
-                    elem_t res = lhs * rhs;
+                    elem_t res = lhs / rhs;
                     StackPush(&stack, &res); 
                     ++pc;
                     break;

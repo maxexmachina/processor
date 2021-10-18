@@ -5,6 +5,13 @@ const unsigned int PROCESSOR_VER = 1;
 
 static const char *TYPE_TAG = "JEFF";
 
+enum AlgebraicOp : int {
+    ADD = 0,
+    SUB = 1,
+    MUL = 2,
+    DIV = 3,
+};
+
 enum ProcessorError : int {
     ERR_FILE_RD = 1,
     ERR_WRNG_TAG = 2,

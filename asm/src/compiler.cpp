@@ -95,6 +95,7 @@ int compile(const char *inPath, const char *outPath) {
                         commandArray, outFile, &text);
             }
             commandArray[pc++] = CMD_HLT; 
+#if DEBUG_MODE > 0
         } else if (strcmp(cur.text, "ver") == 0) {
             if (ret != 1) {
                 return printCompilationError(ERR_ARG_COUNT, i, inPath,
@@ -107,6 +108,7 @@ int compile(const char *inPath, const char *outPath) {
                         commandArray, outFile, &text);
             }
             commandArray[pc++] = CMD_DMP;
+#endif
         } else if (strcmp(cur.text, "out") == 0) {
             if (ret != 1) {
                 return printCompilationError(ERR_ARG_COUNT, i, inPath,

@@ -5,6 +5,8 @@
 
 const unsigned int CMD_SET_VERSION = 1;
 
+typedef long long num_t;
+
 enum Commands : int {
     CMD_HLT = 0,
     CMD_VER = 1,

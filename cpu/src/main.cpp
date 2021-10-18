@@ -14,7 +14,10 @@ int main(int argc, char **argv) {
         return EXIT_FAILURE;
     }
     const char *programPath = argv[1];
-    run(programPath);
+    int ret = run(programPath);
+    if (ret != 0) {
+        return ret;
+    }
 
     return EXIT_SUCCESS; 
 }
