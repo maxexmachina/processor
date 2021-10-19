@@ -1,9 +1,12 @@
 RM		= rm -rf
 
-all: assembler processor
+all: assembler disassembler processor
 
 assembler:
 			cd asm && make all && mv assembler ..
+
+disassembler:
+			cd disasm && make all && mv disassembler ..
 
 processor:
 			cd cpu && make all && mv processor ..
@@ -11,7 +14,8 @@ processor:
 clean:
 		cd asm && make fclean
 		cd cpu && make fclean
-		$(RM) assembler processor
+		cd disasm && make fclean
+		$(RM) assembler disassembler processor *.jf
 
 re:		clean all
 

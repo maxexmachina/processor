@@ -14,7 +14,6 @@ void freeFileBuf(char *codeBuf) {
     }
 } 
 
-//TODO ASSERTS
 int ProcessorInit(Processor *proc, const char *codePath) {
 #if PROT_LEVEL > 0
     assert(proc);
@@ -43,6 +42,7 @@ int ProcessorInit(Processor *proc, const char *codePath) {
         return ERR_WRNG_CMD_SET;
     }
     proc->code = fileBuf + 4 + sizeof(unsigned int);
+    proc->codeSize -= 4 + sizeof(unsigned int);
 
     StackCtor(&proc->stack, sizeof(num_t), 10);
     proc->ip = 0;

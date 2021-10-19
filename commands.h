@@ -7,7 +7,9 @@ const unsigned int CMD_SET_VERSION = 1;
 
 typedef long long num_t;
 
-enum Commands : int {
+const size_t cmdSetLen = 10;
+
+enum Command : int {
     CMD_HLT = 0,
     CMD_VER = 1,
     CMD_DMP = 2,
@@ -19,5 +21,23 @@ enum Commands : int {
     CMD_MUL = 8,
     CMD_DIV = 9
 };
+
+struct Cmd {
+    short id;
+    const char *name;
+};
+
+const Cmd cmdNameMap[cmdSetLen] = {
+    {.id = 0, .name = "hlt"},
+    {.id = 1, .name = "ver"},
+    {.id = 2, .name = "dmp"},
+    {.id = 3, .name = "out"},
+    {.id = 4, .name = "push"},
+    {.id = 5, .name = "pop"},
+    {.id = 6, .name = "add"},
+    {.id = 7, .name = "sub"},
+    {.id = 8, .name = "mul"},
+    {.id = 9, .name = "div"},
+}; 
 
 #endif
