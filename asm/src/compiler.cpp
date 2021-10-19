@@ -55,7 +55,7 @@ int compile(const char *inPath, const char *outPath) {
         return ERR_FILE_OPN;
     }
 
-    const char tag[4 + sizeof(unsigned int)] = "JEFF";
+    char tag[4 + sizeof(unsigned int)] = "JEFF";
     unsigned int curVersion = CMD_SET_VERSION;
     unsigned int *ver = (unsigned int *)(tag + 4);
     *ver = curVersion;

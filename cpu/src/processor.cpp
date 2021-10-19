@@ -94,7 +94,7 @@ int ProcessorRun(Processor *proc) {
     assert(proc);
     assert(proc->code);
 #endif
-    while (proc->ip <= proc->codeSize) {
+    while (proc->ip < proc->codeSize) {
         switch(proc->code[proc->ip]) {
             case CMD_HLT:
                 printf("Ending program run\n");

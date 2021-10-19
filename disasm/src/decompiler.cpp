@@ -48,7 +48,6 @@ int decompile(const char *inPath, const char *outPath) {
     if (fileBuf == nullptr) {
         return ERR_FILE_RD;
     }
-    printf("Buffer size read : %zu\n", bufSize);
 
     char tag[5] = "";
     memcpy(tag, fileBuf, 4);
@@ -78,7 +77,7 @@ int decompile(const char *inPath, const char *outPath) {
     }
 
     size_t ip = 0;
-    while (ip <= bufSize) {
+    while (ip < bufSize) {
         switch(codeBuf[ip]) {
             case CMD_HLT:
                 writeCmd(outFile, CMD_HLT);
@@ -100,8 +99,6 @@ int decompile(const char *inPath, const char *outPath) {
                 break;
             case CMD_PUSH:
                 {
-                    printf("Push command at %zu:\n", ip);
-                    printf("Num starts at %zu and ends at %zu\n", ip + 1, ip + 1 + sizeof(num_t));
                     char *argStr = (char *)calloc(64, sizeof(*argStr));
                     sprintf(argStr, "%lld", *(num_t *)(codeBuf + ip + 1));
                     writeCmd(outFile, CMD_PUSH, argStr);
