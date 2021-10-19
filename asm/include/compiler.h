@@ -27,7 +27,7 @@ enum CompilationError : int {
 
 int compile(const char *inPath, const char *outPath=nullptr);
 
-int printCompilationError(int errCode, size_t line, const char *filePath,
+int printCompilationError(int errCode, size_t lineNum, const char *filePath,
         void *commandArray=nullptr, FILE *compiled=nullptr, text_t *text=nullptr);
 
 #endif

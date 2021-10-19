@@ -3,7 +3,8 @@
 #include <stdlib.h>
 #include <assert.h>
 
-#include "../include/commands.h"
+#include "../../commands.h"
+#include "../../config.h"
 #include "../include/processor.h"
 #include "../include/fileUtils.h"
 
@@ -15,7 +16,7 @@ void freeFileBuf(char *codeBuf) {
 
 //TODO ASSERTS
 int ProcessorInit(Processor *proc, const char *codePath) {
-#if DEBUG_MODE > 0
+#if PROT_LEVEL > 0
     assert(proc);
 #endif
 
@@ -50,7 +51,7 @@ int ProcessorInit(Processor *proc, const char *codePath) {
 }
 
 int algebraicOperation(Stack *stack, AlgebraicOp op) {
-#if DEBUG_MODE > 0
+#if PROT_LEVEL > 0
     assert(stack);
 #endif
     elem_t lhs = 0;
@@ -89,7 +90,7 @@ int algebraicOperation(Stack *stack, AlgebraicOp op) {
 }
 
 int ProcessorRun(Processor *proc) {
-#if DEBUG_MODE > 0
+#if PROT_LEVEL > 0
     assert(proc);
     assert(proc->code);
 #endif
@@ -101,7 +102,7 @@ int ProcessorRun(Processor *proc) {
                 freeFileBuf(proc->code);
                 return 0;
                 break;
-#if DEBUG_MODE > 0 
+#if PROT_LEVEL > 0 
             case CMD_VER:
                 ASSERT_OK(&proc->stack);
                 ++proc->ip;

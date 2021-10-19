@@ -36,4 +36,8 @@ int ProcessorRun(Processor *proc);
 
 int ProcessorInit(Processor *proc, const char *codePath);
 
+void freeFileBuf(char *codeBuf);
+
+int algebraicOperation(Stack *stack, AlgebraicOp op);
+
 #endif

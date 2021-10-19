@@ -30,7 +30,7 @@ bool isEqualBytes(const void *elem1, const void *elem2, size_t size) {
     return true;
 }
 
-#if DEBUG_MODE > 1
+#if PROT_LEVEL > 1
 canary_t *getDataCanaryRight(Stack *stack) {
     return (canary_t *)getIndexAdress(stack->data, stack->capacity, stack->elemSize);
 }
@@ -40,7 +40,7 @@ canary_t *getDataCanaryLeft(Stack *stack) {
 }
 #endif
 
-#if DEBUG_MODE > 0 
+#if PROT_LEVEL > 0 
 int StackError(Stack *stack) {
     if (!stack) {
         return STK_NULL;
@@ -51,7 +51,7 @@ int StackError(Stack *stack) {
     if (stack->size == STK_SIZE_POISON) {
         return STK_INV_SIZE;
     }
-#if DEBUG_MODE > 1
+#if PROT_LEVEL > 1
     if (stack->canaryLeft != canaryVal) {
         return STK_CAN_LFT;
     }
@@ -65,7 +65,7 @@ int StackError(Stack *stack) {
         return STK_DATA_CAN_RGT;
     }
 #endif
-#if DEBUG_MODE > 2
+#if PROT_LEVEL > 2
     size_t hash = stack->hash;
     if (StackHash(stack) != hash) {
         return STK_HASH_FLR;
@@ -86,7 +86,7 @@ int writeErrCode(int err) {
         case STK_CAP_OVERFL:
             res = writeToLog("STK_CAP_OVERFL ");
             break;
-#if DEBUG_MODE > 1 
+#if PROT_LEVEL > 1 
         case STK_CAN_LFT:
             res = writeToLog("STK_CAN_LFT ");
             break;
@@ -100,7 +100,7 @@ int writeErrCode(int err) {
             res = writeToLog("STK_DATA_CAN_RGT ");
             break;
 #endif
-#if DEBUG_MODE > 2
+#if PROT_LEVEL > 2
         case STK_HASH_FLR:
             res = writeToLog("STK_HASH_FLR ");
             break;
@@ -116,7 +116,7 @@ void *getIndexAdress(void *start, size_t index, size_t size) {
     return (char *)start + index * size; 
 }
 
-#if DEBUG_MODE > 0
+#if PROT_LEVEL > 0
 int StackDump_(Stack *stack, const char *reason, callInfo info, const char *stkName) {
     int dumpResult = 1;
 
@@ -138,13 +138,13 @@ int StackDump_(Stack *stack, const char *reason, callInfo info, const char *stkN
     if (!stack) {
         dumpResult *= writeToLog("stack : nullptr\n");
     } else {
-#if DEBUG_MODE > 1
+#if PROT_LEVEL > 1
         dumpResult *= writeToLog("Left canary: %llx\nRight canary: %llx\n"
                                  "Left data canary: %llx\nRight data canary: %llx\n",
                                  stack->canaryLeft, stack->canaryRight,
                                  *getDataCanaryLeft(stack), *getDataCanaryRight(stack));
 #endif
-#if DEBUG_MODE > 2
+#if PROT_LEVEL > 2
         dumpResult *= writeToLog("Stack hash: %lu\n", stack->hash);
 #endif
         dumpResult *= writeToLog("size = %zu\ncapacity = %zu\nelement size = %zu\ndata[%p]:\n"
@@ -187,7 +187,7 @@ int StackDump_(Stack *stack, const char *reason, callInfo info, const char *stkN
 }
 #endif
 
-#if DEBUG_MODE > 2
+#if PROT_LEVEL > 2
 
 #define A 54059 /* a prime */
 #define B 76963 /* another prime */
@@ -226,12 +226,12 @@ size_t StackHash(Stack *stack) {
 #endif
 
 int StackCtor_(Stack *stack, size_t elemSize, size_t capacity, callInfo info) {
-#if DEBUG_MODE > 0
+#if PROT_LEVEL > 0
     assert(stack);
 #endif
 
     if (capacity != 0) {
-#if DEBUG_MODE > 1
+#if PROT_LEVEL > 1
         void *data = malloc(elemSize * capacity + 2 * sizeof(canary_t)); 
         if (data == nullptr) {
             printf("There was an error allocating memory for the stack : %s\n", strerror(errno));
@@ -254,17 +254,17 @@ int StackCtor_(Stack *stack, size_t elemSize, size_t capacity, callInfo info) {
     stack->elemSize = elemSize;
     stack->capacity = capacity;
 
-#if DEBUG_MODE > 0
+#if PROT_LEVEL > 0
     stack->ctorCallFuncName = info.funcName;
     stack->ctorCallFile = info.file;
     stack->ctorCallLine = info.line; 
 
-#if DEBUG_MODE > 1
+#if PROT_LEVEL > 1
     stack->canaryLeft = canaryVal; 
     stack->canaryRight = canaryVal; 
 #endif
 
-#if DEBUG_MODE > 2
+#if PROT_LEVEL > 2
     stack->hash = StackHash(stack);
 #endif
 
@@ -275,12 +275,12 @@ int StackCtor_(Stack *stack, size_t elemSize, size_t capacity, callInfo info) {
 }
 
 int StackResize(Stack *stack, size_t size) {
-#if DEBUG_MODE > 0
+#if PROT_LEVEL > 0
     ASSERT_OK(stack);
 #endif
 
     const size_t newCap = size;
-#if DEBUG_MODE > 1
+#if PROT_LEVEL > 1
     void *newData = realloc((char *)stack->data - sizeof(canary_t), newCap * stack->elemSize + 2 * sizeof(canary_t));
 #else
     void *newData = realloc(stack->data, newCap * stack->elemSize);
@@ -291,7 +291,7 @@ int StackResize(Stack *stack, size_t size) {
         return 0;
     }
 
-#if DEBUG_MODE > 1
+#if PROT_LEVEL > 1
     *(canary_t *)newData = canaryVal;
     stack->data = (char *)newData + sizeof(canary_t);
     canary_t *canRight = (canary_t *)getIndexAdress(stack->data, newCap, stack->elemSize); 
@@ -301,25 +301,25 @@ int StackResize(Stack *stack, size_t size) {
 #endif
     stack->capacity = newCap;
 
-#if DEBUG_MODE > 0
+#if PROT_LEVEL > 0
     for (size_t i = stack->size; i < stack->capacity; ++i) {
         elem_t poisoned = getPoisonedInstance();
         memcpy(getIndexAdress(stack->data, i, stack->elemSize), &poisoned, stack->elemSize);
     }
 #endif
 
-#if DEBUG_MODE > 2
+#if PROT_LEVEL > 2
     stack->hash = StackHash(stack);
 #endif
 
-#if DEBUG_MODE > 0
+#if PROT_LEVEL > 0
     ASSERT_OK(stack);
 #endif
     return 1;
 }
 
 void StackDtor(Stack *stack) {
-#if DEBUG_MODE > 0
+#if PROT_LEVEL > 0
     ASSERT_OK(stack);
 
     elem_t poison = getPoisonedInstance();
@@ -331,19 +331,19 @@ void StackDtor(Stack *stack) {
     stack->capacity = STK_SIZE_POISON;
 #endif
 
-#if DEBUG_MODE > 1
+#if PROT_LEVEL > 1
     free((char *)stack->data - sizeof(canary_t));
 #else
     free(stack->data);
 #endif
 
-#if DEBUG_MODE > 0
+#if PROT_LEVEL > 0
     stack->data = (int *)13;
 #endif
 }
 
 void StackPush(Stack *stack, void *src, int *err) {
-#if DEBUG_MODE > 0
+#if PROT_LEVEL > 0
     ASSERT_OK(stack);
     assert(src);
 #endif
@@ -365,17 +365,17 @@ void StackPush(Stack *stack, void *src, int *err) {
     }
     memcpy(getIndexAdress(stack->data, stack->size++, stack->elemSize),
              src, stack->elemSize);
-#if DEBUG_MODE > 2
+#if PROT_LEVEL > 2
     stack->hash = StackHash(stack);
 #endif
 
-#if DEBUG_MODE > 0
+#if PROT_LEVEL > 0
     ASSERT_OK(stack);
 #endif
 }
 
 void StackPop(Stack *stack, void *dest, int *err) {
-#if DEBUG_MODE > 0
+#if PROT_LEVEL > 0
     ASSERT_OK(stack);
     assert(dest);
 #endif
@@ -390,11 +390,11 @@ void StackPop(Stack *stack, void *dest, int *err) {
 
     memcpy(dest, getIndexAdress(stack->data, --stack->size, stack->elemSize),
              stack->elemSize);
-#if DEBUG_MODE > 0
+#if PROT_LEVEL > 0
     elem_t poisoned = getPoisonedInstance();
     memcpy(getIndexAdress(stack->data, stack->size, stack->elemSize), &poisoned, stack->elemSize);
 #endif
-#if DEBUG_MODE > 2
+#if PROT_LEVEL > 2
     stack->hash = StackHash(stack);
 #endif
     if (stack->size > 0 && stack->size == stack->capacity / 4) {
@@ -406,13 +406,13 @@ void StackPop(Stack *stack, void *dest, int *err) {
             return;
         }
     }
-#if DEBUG_MODE > 0
+#if PROT_LEVEL > 0
     ASSERT_OK(stack);
 #endif
 }
 
 void StackTop(Stack *stack, void *dest, int *err) {
-#if DEBUG_MODE > 0
+#if PROT_LEVEL > 0
     ASSERT_OK(stack);
 #endif
 
@@ -426,7 +426,7 @@ void StackTop(Stack *stack, void *dest, int *err) {
     memcpy(dest, getIndexAdress(stack->data, stack->size - 1, stack->elemSize),
              stack->elemSize);
 
-#if DEBUG_MODE > 0 
+#if PROT_LEVEL > 0 
     ASSERT_OK(stack);
 #endif
 }

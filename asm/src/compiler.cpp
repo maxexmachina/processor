@@ -4,11 +4,12 @@
 
 #include "../include/compiler.h"
 #include "../include/split.h"
-#include "../include/commands.h"
+#include "../../commands.h"
+#include "../../config.h"
 
-int printCompilationError(int errCode, size_t line, const char *filePath,
+int printCompilationError(int errCode, size_t lineNum, const char *filePath,
         void *commandArray, FILE *outFile, text_t *text) {
-    printf("Error compiling file %s on line %zu:\n", filePath, line);
+    printf("Error compiling file %s on line %zu:\n", filePath, lineNum);
 
     switch(errCode) {
         case ERR_CMD_SCAN:
@@ -95,7 +96,7 @@ int compile(const char *inPath, const char *outPath) {
                         commandArray, outFile, &text);
             }
             commandArray[pc++] = CMD_HLT; 
-#if DEBUG_MODE > 0
+#if PROT_LEVEL > 0
         } else if (strcmp(cur.text, "ver") == 0) {
             if (ret != 1) {
                 return printCompilationError(ERR_ARG_COUNT, i, inPath,

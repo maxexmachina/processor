@@ -12,7 +12,7 @@
     #endif
 #endif
 
-#define DEBUG_MODE 0 
+#include "../../config.h"
 
 //------------------ User type -------------
 
@@ -53,13 +53,13 @@ enum StkError : int {
     STK_CAP_OVERFL = 3, /**< Stack size is more than stack capacity */
     STK_UNDERFL = 4, /**< Trying to pop from an empty stack */
     STK_NOMMRY = 5, /**< Memory allocation error */
-#if DEBUG_MODE > 1
+#if PROT_LEVEL > 1
     STK_CAN_RGT = 6,
     STK_CAN_LFT = 7,
     STK_DATA_CAN_LFT = 8,
     STK_DATA_CAN_RGT = 9,
 #endif
-#if DEBUG_MODE > 2
+#if PROT_LEVEL > 2
     STK_HASH_FLR = 10,
 #endif
 };
@@ -71,14 +71,14 @@ struct callInfo {
     int line; /**< Line of the function call in the file */
 };
 
-#if DEBUG_MODE > 1
+#if PROT_LEVEL > 1
 typedef unsigned long long canary_t;
 const canary_t canaryVal = 3735927486; // 0xDEADBABE 
 #endif
 
 //! Declares a stack data structure as a struct
 struct Stack {
-#if DEBUG_MODE > 1
+#if PROT_LEVEL > 1
     canary_t canaryLeft;
 #endif
 
@@ -87,7 +87,7 @@ struct Stack {
     size_t elemSize; /**< Size of the stored type in bytes */
     void *data; /**< Pointer to the stack data array */
 
-#if DEBUG_MODE > 0
+#if PROT_LEVEL > 0
     const char *typeName; /**< String name of the data type stored in the stack for debug output */
 
     const char *ctorCallFuncName; /**< Function that called the stack constructor */
@@ -95,16 +95,16 @@ struct Stack {
     int ctorCallLine; /**< Line of the constructor call */
 #endif
 
-#if DEBUG_MODE > 2
+#if PROT_LEVEL > 2
     size_t hash;
 #endif
 
-#if DEBUG_MODE > 1
+#if PROT_LEVEL > 1
     canary_t canaryRight;
 #endif
 };
 
-#if DEBUG_MODE > 2
+#if PROT_LEVEL > 2
 size_t hashStr(const char* s);
 
 size_t hashData(void *data, size_t size);
@@ -115,7 +115,7 @@ size_t StackHash(Stack *stack);
 //! Default stack capacity
 const size_t DEFAULT_STACK_CAPACITY = 10;
 
-#if DEBUG_MODE > 0
+#if PROT_LEVEL > 0
 //------------------------------------------------------------ 
 //! Checks if the given stack is valid
 //!
@@ -125,7 +125,7 @@ const size_t DEFAULT_STACK_CAPACITY = 10;
 //------------------------------------------------------------ 
 int StackError(Stack *stack);
 
-#if DEBUG_MODE > 1
+#if PROT_LEVEL > 1
 canary_t *getDataCanaryLeft(Stack *stack);
 
 canary_t *getDataCanaryRight(Stack *stack);
@@ -164,7 +164,7 @@ bool isEqualBytes(const void *elem1, const void *elem2, size_t size);
 //------------------------------------------------------------ 
 void *getIndexAdress(void *start, size_t index, size_t size);
 
-#if DEBUG_MODE > 0
+#if PROT_LEVEL > 0
 //------------------------------------------------------------ 
 //! Prints all information about the stack to the log file
 //!
