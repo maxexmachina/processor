@@ -48,6 +48,7 @@ int decompile(const char *inPath, const char *outPath) {
     if (fileBuf == nullptr) {
         return ERR_FILE_RD;
     }
+    printf("Buffer size read : %zu\n", bufSize);
 
     char tag[5] = "";
     memcpy(tag, fileBuf, 4);

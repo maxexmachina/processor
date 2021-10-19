@@ -13,7 +13,7 @@ size_t getFileSize(const char *filePath) {
     return fileStats.st_size;
 }
 
-char *readFile(const char *filePath, size_t *size) {
+char *readFile(const char *filePath, size_t *size, FileType type) {
     const size_t fileSize = getFileSize(filePath);
 
     FILE *fileToRead = fopen(filePath, "r");
@@ -22,7 +22,14 @@ char *readFile(const char *filePath, size_t *size) {
         printf("There was an error opening file %s : %s\n", filePath, strerror(errno));
         return nullptr;
     }
-    char *readBuf = (char *)calloc(fileSize + 1, sizeof(*readBuf));
+
+    char *readBuf = nullptr;
+    if (type == TYPE_BINARY) {
+        readBuf = (char *)calloc(fileSize, sizeof(*readBuf));
+    } else if (type == TYPE_TEXT) {
+        readBuf = (char *)calloc(fileSize + 1, sizeof(*readBuf));
+    }
+
     if (readBuf == nullptr) {
         printf("There was an error allocating memory : %s\n", strerror(errno));
         fclose(fileToRead);
@@ -39,7 +46,12 @@ char *readFile(const char *filePath, size_t *size) {
         free(readBuf);
         return nullptr; 
     }
-    readBuf[fileSize] = '\0';
-    *size = fileSize + 1;
+
+    if (type == TYPE_BINARY) {
+        *size = fileSize; 
+    } else if (type == TYPE_TEXT) {
+        readBuf[fileSize] = '\0';
+        *size = fileSize + 1;
+    }
     return readBuf;
 }

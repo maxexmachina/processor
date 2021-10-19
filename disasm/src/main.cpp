@@ -3,8 +3,10 @@
 #include <stdlib.h>
 
 #include "../include/decompiler.h"
+#include "../include/fileUtils.h"
 
 int main(int argc, char **argv) {
+    //TODO REWRITE FILEUTILS FOR BINARY AND TEXT
     if (argc == 2) {
         int ret = decompile(argv[1], "decompiled.asm");
         if (ret != 0) {

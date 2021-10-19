@@ -10,7 +10,7 @@ void freeText(text_t *text) {
 
 int getText(const char *filePath, text_t *text) {
     size_t bufSize = 0;
-    char *textBuffer = readFile(filePath, &bufSize);
+    char *textBuffer = readFile(filePath, &bufSize, TYPE_TEXT);
     if (textBuffer == nullptr) {
         return 0;
     }
