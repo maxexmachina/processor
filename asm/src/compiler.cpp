@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#include <limits.h>
 
 #include "../include/compiler.h"
 #include "../include/split.h"
@@ -38,7 +39,54 @@ int printCompilationError(int errCode, size_t lineNum, const char *filePath,
         freeText(text);
     }
     return errCode;
-} 
+}
+
+int getCommand(const char *textLine, command *curCommand, size_t *nArgs) {
+    if (sscanf(textLine, "%[^ ]s", curCommand->cmd) == 0) {
+        return 1;
+    } 
+
+    size_t numArgs = 0;
+    size_t ret = 0;
+    if (strchr(textLine, ' ') == nullptr) {
+        numArgs = 0;
+    } else if (strchr(textLine, '+') != nullptr) {
+        numArgs = 2;
+        const char *found = strchr(textLine, ' ');
+        if (found != nullptr) {
+            ret += sscanf(found + 1, "%[^+]s", curCommand->reg); 
+        }
+        found = strchr(textLine, '+');
+        if (found != nullptr) {
+            ret += sscanf(found + 1, "%lld", &curCommand->konst);
+        }
+    } else {
+        numArgs = 1;
+        const char *found = strchr(textLine, ' ');
+        if (found != nullptr) {
+            ret += sscanf(found + 1, "%[a-z]s", curCommand->reg); 
+        }
+        if (found != nullptr) {
+            ret += sscanf(found + 1, "%lld", &curCommand->konst);
+        }
+    }
+    if (ret != numArgs) {
+        return 1; 
+    }
+    *nArgs = numArgs;
+
+    return 0;
+}
+
+int getRegId(const char *name) {
+    for (size_t i = 0; i < 4; ++i) {
+        if (strcmp(regMap[i].name, name) == 0) {
+            return regMap[i].id;
+        }
+    }
+
+    return 0;
+}
 
 int compile(const char *inPath, const char *outPath) {
 
@@ -78,79 +126,96 @@ int compile(const char *inPath, const char *outPath) {
     size_t pc = 0;
     for (size_t i = 0; i < text.numLines; ++i) {
         command cur = {};
-        int ret = sscanf(text.lines[i].ptr, "%s %lld", &cur.text, &cur.num);
-
-        if (ret == 0) {
+        size_t numArgs = 0;
+        if (getCommand(text.lines[i].ptr, &cur, &numArgs) != 0) {
             return printCompilationError(ERR_CMD_SCAN, i, inPath,
                     commandArray, outFile, &text);
         }
 
-        if (pc >= MAX_CMD_ARR_LEN - 9) {
+        if (pc >= MAX_CMD_ARR_LEN - 1 - sizeof(num_t)) {
             return printCompilationError(ERR_CMD_BUFF_LEN, i, inPath,
                     commandArray, outFile, &text); 
         }
 
-        if (strcmp(cur.text, "hlt") == 0) {
-            if (ret != 1) {
+        if (strcmp(cur.cmd, "hlt") == 0) {
+            if (numArgs != 0) {
                 return printCompilationError(ERR_ARG_COUNT, i, inPath,
                         commandArray, outFile, &text);
             }
             commandArray[pc++] = CMD_HLT; 
 #if PROT_LEVEL > 0
-        } else if (strcmp(cur.text, "ver") == 0) {
-            if (ret != 1) {
+        } else if (strcmp(cur.cmd, "ver") == 0) {
+            if (numArgs != 0) {
                 return printCompilationError(ERR_ARG_COUNT, i, inPath,
                         commandArray, outFile, &text);
             }
             commandArray[pc++] = CMD_VER; 
-        } else if (strcmp(cur.text, "dmp") == 0) {
-            if (ret != 1) {
+        } else if (strcmp(cur.cmd, "dmp") == 0) {
+            if (numArgs != 0) {
                 return printCompilationError(ERR_ARG_COUNT, i, inPath,
                         commandArray, outFile, &text);
             }
             commandArray[pc++] = CMD_DMP;
 #endif
-        } else if (strcmp(cur.text, "out") == 0) {
-            if (ret != 1) {
+        } else if (strcmp(cur.cmd, "out") == 0) {
+            if (numArgs != 0) {
                 return printCompilationError(ERR_ARG_COUNT, i, inPath,
                         commandArray, outFile, &text);
             }
             commandArray[pc++] = CMD_OUT;
-        } else if (strcmp(cur.text, "push") == 0) {
-            if (ret != 2) {
+        } else if (strcmp(cur.cmd, "push") == 0) {
+            if (numArgs < 1) {
                 return printCompilationError(ERR_ARG_COUNT, i, inPath,
                         commandArray, outFile, &text);
             }
-            commandArray[pc++] = CMD_PUSH;
-            num_t *cmdPtr = (num_t *)(commandArray + pc);
-            *cmdPtr = cur.num;
-            pc += sizeof(*cmdPtr);
-        } else if (strcmp(cur.text, "pop") == 0) {
-            if (ret != 1) {
+            char commandInfo = 0;
+            char args[1 + sizeof(num_t)];
+            size_t argLen = 0;
+            if (cur.konst != LLONG_MAX) {
+                commandInfo |= KONST_BIT;
+                num_t *ptr = (num_t *)args;
+                *ptr = cur.konst;
+                argLen += sizeof(num_t);
+            }
+            if (getRegId(cur.reg) != 0) {
+                commandInfo |= REG_BIT;
+                if (numArgs == 1) {
+                    args[0] = (char)getRegId(cur.reg);
+                } else {
+                    args[sizeof(num_t)] = getRegId(cur.reg);
+                }
+                ++argLen;
+            }
+            commandArray[pc++] = commandInfo;
+
+            memcpy(commandArray + pc, args, argLen); 
+            pc += argLen;
+        } else if (strcmp(cur.cmd, "pop") == 0) {
+            if (numArgs != 0) {
                 return printCompilationError(ERR_ARG_COUNT, i, inPath,
                         commandArray, outFile, &text);
             }
             commandArray[pc++] = CMD_POP;
-        } else if (strcmp(cur.text, "add") == 0) {
-            if (ret != 1) {
+        } else if (strcmp(cur.cmd, "add") == 0) {
+            if (numArgs != 0) {
                 return printCompilationError(ERR_ARG_COUNT, i, inPath,
                         commandArray, outFile, &text);
             }
             commandArray[pc++] = CMD_ADD;
-        } else if (strcmp(cur.text, "sub") == 0) {
-            if (ret != 1) {
+        } else if (strcmp(cur.cmd, "sub") == 0) {
+            if (numArgs != 0) {
                 return printCompilationError(ERR_ARG_COUNT, i, inPath,
                         commandArray, outFile, &text);
             }
             commandArray[pc++] = CMD_SUB;
-        } else if (strcmp(cur.text, "mul") == 0) {
-            if (ret != 1) {
+        } else if (strcmp(cur.cmd, "mul") == 0) {
+            if (numArgs != 0) {
                 return printCompilationError(ERR_ARG_COUNT, i, inPath,
                         commandArray, outFile, &text);
             }
             commandArray[pc++] = CMD_MUL;
-        } else if (strcmp(cur.text, "div") == 0) {
-            if (ret != 1) {
+        } else if (strcmp(cur.cmd, "div") == 0) {
+            if (numArgs != 0) {
                 return printCompilationError(ERR_ARG_COUNT, i, inPath,
                         commandArray, outFile, &text);
             }

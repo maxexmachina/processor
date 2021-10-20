@@ -6,8 +6,25 @@
 #include "../include/fileUtils.h"
 
 struct command {
-    const char text[16];
-    long long int num;
+    char cmd[16];
+    long long int konst;
+    char reg[4];
+};
+
+const char RAM_BIT = 0x01;
+const char REG_BIT = 0x02;
+const char KONST_BIT = 0x03;
+
+struct Registry {
+    const char *name;
+    const int id;
+};
+
+const Registry regMap[4] = {
+    {.name = "ax", .id = 1},
+    {.name = "bx", .id = 2},
+    {.name = "cx", .id = 3},
+    {.name = "dx", .id = 4},
 };
 
 typedef long long num_t;
@@ -24,6 +41,10 @@ enum CompilationError : int {
     ERR_UNDEF_CMD = 7,
     ERR_CMD_BUFF_LEN = 8,
 };
+
+int getCommand(const char *textLine, command *curCommand, size_t *nArgs);
+
+int getRegId(const char *name);
 
 int compile(const char *inPath, const char *outPath=nullptr);
 

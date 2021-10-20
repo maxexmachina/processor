@@ -2,6 +2,7 @@
 #define PROCESSOR_H
 
 #include "stack.h"
+#include "../../commands.h"
 
 const unsigned int PROCESSOR_VER = 1;
 
@@ -12,6 +13,7 @@ struct Processor {
     char *code;
     size_t codeSize;
     size_t ip;
+    num_t regs[4];
 };
 
 enum AlgebraicOp : int {
