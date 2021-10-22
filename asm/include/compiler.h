@@ -7,13 +7,15 @@
 
 struct command {
     char cmd[16];
+    bool hasKonst;
     long long int konst;
+    bool hasReg;
     char reg[4];
 };
 
-const char RAM_BIT = 0x01;
-const char REG_BIT = 0x02;
-const char KONST_BIT = 0x03;
+const unsigned char RAM_BIT = 0x80;
+const unsigned char REG_BIT = 0x40;
+const unsigned char KONST_BIT = 0x20;
 
 struct Registry {
     const char *name;
@@ -29,7 +31,7 @@ const Registry regMap[4] = {
 
 typedef long long num_t;
 
-const int MAX_CMD_ARR_LEN = 4096 * 100;
+const int MAX_CMD_ARR_LEN = 4096;
 
 enum CompilationError : int {
     ERR_NOMEM = 1,

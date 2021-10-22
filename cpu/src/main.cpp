@@ -9,9 +9,7 @@
 #include "../include/processor.h"
 
 int main(int argc, char **argv) {
-    CmdBitMap bitmap;
-    printf("%x\n", bitmap.ret);
-/*    if (argc != 2) {
+    if (argc != 2) {
         printf("Please specify the program file path only\n");
         return EXIT_FAILURE;
     }
@@ -29,5 +27,4 @@ int main(int argc, char **argv) {
     }
 
     return EXIT_SUCCESS; 
-    */
 }

@@ -1,7 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
-#include <limits.h>
 
 #include "../include/compiler.h"
 #include "../include/split.h"
@@ -50,6 +49,8 @@ int getCommand(const char *textLine, command *curCommand, size_t *nArgs) {
     } 
 
     size_t numArgs = 0;
+    curCommand->hasKonst = false;
+    curCommand->hasReg = false;
     size_t ret = 0;
     if (strchr(textLine, ' ') == nullptr) {
         numArgs = 0;
@@ -58,19 +59,29 @@ int getCommand(const char *textLine, command *curCommand, size_t *nArgs) {
         const char *found = strchr(textLine, ' ');
         if (found != nullptr) {
             ret += sscanf(found + 1, "%[^+]s", curCommand->reg); 
+            curCommand->hasReg = true;
         }
         found = strchr(textLine, '+');
         if (found != nullptr) {
             ret += sscanf(found + 1, "%lld", &curCommand->konst);
+            curCommand->hasKonst = true;
         }
     } else {
         numArgs = 1;
         const char *found = strchr(textLine, ' ');
         if (found != nullptr) {
-            ret += sscanf(found + 1, "%[a-z]s", curCommand->reg); 
+            size_t regRet = sscanf(found + 1, "%[a-z]s", curCommand->reg); 
+            if (regRet != 0) { 
+                curCommand->hasReg = true;
+            }
+            ret += regRet;
         }
         if (found != nullptr) {
-            ret += sscanf(found + 1, "%lld", &curCommand->konst);
+            size_t konstRet = sscanf(found + 1, "%lld", &curCommand->konst);
+            if (konstRet != 0) {
+                curCommand->hasKonst = true;
+            }
+            ret += konstRet;
         }
     }
     if (ret != numArgs) {
@@ -171,16 +182,16 @@ int compile(const char *inPath, const char *outPath) {
                 return printCompilationError(ERR_ARG_COUNT, i, inPath,
                         commandArray, outFile, &text);
             }
-            char commandInfo = 0;
+            char commandInfo = CMD_PUSH;
             char args[1 + sizeof(num_t)];
             size_t argLen = 0;
-            if (cur.konst != LLONG_MAX) {
+            if (cur.hasKonst) {
                 commandInfo |= KONST_BIT;
                 num_t *ptr = (num_t *)args;
                 *ptr = cur.konst;
                 argLen += sizeof(num_t);
             }
-            if (getRegId(cur.reg) != 0) {
+            if (cur.hasReg) {
                 commandInfo |= REG_BIT;
                 if (numArgs == 1) {
                     args[0] = (char)getRegId(cur.reg);
@@ -200,7 +211,7 @@ int compile(const char *inPath, const char *outPath) {
             } 
             char commandInfo = CMD_POP;
             if (numArgs == 1) {
-                if (getRegId(cur.reg) == 0) {
+                if (!cur.hasReg) {
                     return printCompilationError(ERR_WRNG_ARG, i, inPath,
                             commandArray, outFile, &text);
                 }

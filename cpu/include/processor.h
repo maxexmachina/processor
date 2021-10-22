@@ -16,10 +16,10 @@ struct Processor {
     num_t regs[4];
 };
 
-const char CMD_MASK = 0x1F;
-const char MEM_MASK = 0x80;
-const char REG_MASK = 0x40;
-const char KONST_MASK = 0x20;
+const unsigned char CMD_MASK = 0x1F;
+const unsigned char MEM_MASK = 0x80;
+const unsigned char REG_MASK = 0x40;
+const unsigned char KONST_MASK = 0x20;
 
 enum AlgebraicOp : int {
     OP_ADD = 0,
@@ -37,6 +37,9 @@ enum ProcessorError : int {
     ERR_ALG_FLR = 6,
     ERR_UNDEF_ALG_OP = 7,
     ERR_STK_ERR = 8,
+    ERR_WRNG_REG = 9,
+    ERR_STK_TOP = 10,
+    ERR_STK_PUSH = 11,
 };
 
 int ProcessorRun(Processor *proc);

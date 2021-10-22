@@ -417,7 +417,6 @@ void StackTop(Stack *stack, void *dest, int *err) {
 #endif
 
     if (stack->size == 0) {
-        printf("No elements on the stack");
         if (err) {
             *err = STK_UNDERFL;
         } 

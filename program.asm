@@ -1,7 +1,17 @@
 push 20
-push ax+20
 pop ax
-pop bx 
-add
+push 40
+pop bx
+push 10
+pop cx
+push bx
+push bx
+mul
+push 4
+push ax
+push cx
+mul
+mul
+sub
 out
 hlt

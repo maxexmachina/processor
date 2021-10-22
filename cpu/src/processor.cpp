@@ -14,6 +14,15 @@ void freeFileBuf(char *codeBuf) {
     }
 } 
 
+const char *getCmdName(int cmd) {
+    for (size_t i = 0; i < cmdSetLen; ++i) {
+        if (cmdNameMap[i].id == cmd) {
+            return cmdNameMap[i].name;
+        }
+    }
+    return nullptr;
+}
+
 int ProcessorInit(Processor *proc, const char *codePath) {
 #if PROT_LEVEL > 0
     assert(proc);
@@ -89,21 +98,38 @@ int algebraicOperation(Stack *stack, AlgebraicOp op) {
     return 0;
 }
 
+num_t getArg(Processor *proc, int cmd, int type) {
+    num_t arg = 0;
+    switch(cmd) {
+        case CMD_PUSH:
+            {
+                if (type & KONST_MASK) {
+                    arg += *(num_t *)(proc->code + proc->ip);
+                    proc->ip += sizeof(num_t);
+                }
+                if (type & REG_MASK) arg += proc->regs[proc->code[proc->ip++] - 1];
+            }
+            break;
+        case CMD_POP:
+            if (type & REG_MASK) arg = proc->code[proc->ip++];
+            break;
+        default:
+            printf("This command isn't supposted to have arguments\n");
+    }
+    return arg;
+}
+
 int ProcessorRun(Processor *proc) {
 #if PROT_LEVEL > 0
     assert(proc);
     assert(proc->code);
 #endif
+
     while (proc->ip < proc->codeSize) {
         int cmd = proc->code[proc->ip] & CMD_MASK;
         int type = proc->code[proc->ip];
         ++proc->ip;
-        num_t arg = 0;
-        if (type & KONST_MASK) {
-            arg += *(num_t *)(proc->code + proc->ip);
-            proc->ip += sizeof(num_t);
-        }
-        if (type & REG_MASK) arg += proc->regs[proc->code[proc->ip++] - 1];
+
         switch(cmd) {
             case CMD_HLT:
                 printf("Ending program run\n");
@@ -122,48 +148,65 @@ int ProcessorRun(Processor *proc) {
             case CMD_OUT:
                 {
                     elem_t topElem = 0;
-                    StackTop(&proc->stack, &topElem);
-                    printf("Stack top element : %lld\n", topElem);
+                    int err = 0;
+                    StackTop(&proc->stack, &topElem, &err);
+                    if (!err) { 
+                        printf("Stack top element : %lld\n", topElem);
+                    } else if (err == STK_UNDERFL) {
+                        printf("No elements on the stack\n");
+                    } else {
+                        printf("Undefined error in StackTop\n");
+                        freeFileBuf(proc->code);
+                        return ERR_STK_TOP;
+                    }
                     break;
                 }
             case CMD_PUSH:
-                //TODO ERROR HANDLING
-                StackPush(&proc->stack, &arg);
-                break;
+                {
+                    num_t arg = getArg(proc, cmd, type);
+                    int err = 0;
+                    StackPush(&proc->stack, &arg, &err);
+                    if (err) {
+                        printf("Error in StackPush\n");
+                        freeFileBuf(proc->code);
+                        return ERR_STK_PUSH;
+                    }
+                    break;
+                }
             case CMD_POP:
                 {
+                    num_t arg = getArg(proc, cmd, type);
                     if (arg == 0) {
                         elem_t temp = 0;
                         StackPop(&proc->stack, &temp); 
                     } else if (arg > 0 && arg < 5) {
                         StackPop(&proc->stack, &proc->regs[arg - 1]);
+                    } else {
+                        printf("Wrong register number in pop command\n");
+                        freeFileBuf(proc->code);
+                        return ERR_WRNG_REG; 
                     }
-
                     break;
                 }
             case CMD_ADD:
                 if (algebraicOperation(&proc->stack, OP_ADD) != 0) {
                     return ERR_ALG_FLR;
                 } 
-                ++proc->ip;
                 break;
             case CMD_SUB:
                 if (algebraicOperation(&proc->stack, OP_SUB) != 0) {
                     return ERR_ALG_FLR;
                 } 
-                ++proc->ip;
                 break;
             case CMD_MUL:
                 if (algebraicOperation(&proc->stack, OP_MUL) != 0) {
                     return ERR_ALG_FLR;
                 } 
-                ++proc->ip;
                 break;
             case CMD_DIV:
                 if (algebraicOperation(&proc->stack, OP_DIV) != 0) {
                     return ERR_ALG_FLR;
                 } 
-                ++proc->ip;
                 break;
             default:
                 printf("Undefined command\n");
