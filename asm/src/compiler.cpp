@@ -10,7 +10,7 @@
 
 int printCompilationError(int errCode, size_t lineNum, const char *filePath,
         void *commandArray, FILE *outFile, text_t *text) {
-    printf("Error compiling file %s on line %zu:\n", filePath, lineNum);
+    printf("Error compiling file %s on line %zu:\n", filePath, lineNum + 1);
 
     switch(errCode) {
         case ERR_CMD_SCAN:
@@ -25,6 +25,9 @@ int printCompilationError(int errCode, size_t lineNum, const char *filePath,
         case ERR_CMD_BUFF_LEN:
             printf("Too many commands for the set command buffer,"
                     "recompile with a bigger buffer size\n");
+            break;
+        case ERR_WRNG_ARG:
+            printf("Encountered unexpected argument\n");
             break;
         default:
             printf("Undefined error occured\n");
@@ -191,11 +194,22 @@ int compile(const char *inPath, const char *outPath) {
             memcpy(commandArray + pc, args, argLen); 
             pc += argLen;
         } else if (strcmp(cur.cmd, "pop") == 0) {
-            if (numArgs != 0) {
+            if (numArgs > 1) {
                 return printCompilationError(ERR_ARG_COUNT, i, inPath,
                         commandArray, outFile, &text);
+            } 
+            char commandInfo = CMD_POP;
+            if (numArgs == 1) {
+                if (getRegId(cur.reg) == 0) {
+                    return printCompilationError(ERR_WRNG_ARG, i, inPath,
+                            commandArray, outFile, &text);
+                }
+                commandInfo |= REG_BIT;
+                commandArray[pc++] = commandInfo;
+                commandArray[pc++] = getRegId(cur.reg);
+            } else {
+                commandArray[pc++] = commandInfo;
             }
-            commandArray[pc++] = CMD_POP;
         } else if (strcmp(cur.cmd, "add") == 0) {
             if (numArgs != 0) {
                 return printCompilationError(ERR_ARG_COUNT, i, inPath,

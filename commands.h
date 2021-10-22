@@ -9,6 +9,7 @@ typedef long long num_t;
 
 const size_t cmdSetLen = 10;
 
+//TODO in command`
 enum Command : int {
     CMD_HLT = 0,
     CMD_VER = 1,

@@ -40,6 +40,7 @@ enum CompilationError : int {
     ERR_FILE_WRT = 6,
     ERR_UNDEF_CMD = 7,
     ERR_CMD_BUFF_LEN = 8,
+    ERR_WRNG_ARG = 10,
 };
 
 int getCommand(const char *textLine, command *curCommand, size_t *nArgs);

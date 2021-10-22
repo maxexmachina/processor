@@ -95,7 +95,16 @@ int ProcessorRun(Processor *proc) {
     assert(proc->code);
 #endif
     while (proc->ip < proc->codeSize) {
-        switch(proc->code[proc->ip]) {
+        int cmd = proc->code[proc->ip] & CMD_MASK;
+        int type = proc->code[proc->ip];
+        ++proc->ip;
+        num_t arg = 0;
+        if (type & KONST_MASK) {
+            arg += *(num_t *)(proc->code + proc->ip);
+            proc->ip += sizeof(num_t);
+        }
+        if (type & REG_MASK) arg += proc->regs[proc->code[proc->ip++] - 1];
+        switch(cmd) {
             case CMD_HLT:
                 printf("Ending program run\n");
                 StackDtor(&proc->stack);
@@ -105,11 +114,9 @@ int ProcessorRun(Processor *proc) {
 #if PROT_LEVEL > 0 
             case CMD_VER:
                 ASSERT_OK(&proc->stack);
-                ++proc->ip;
                 break;
             case CMD_DMP:
                 StackDump(&proc->stack, "DMP processor command");
-                ++proc->ip;
                 break;
 #endif
             case CMD_OUT:
@@ -117,18 +124,21 @@ int ProcessorRun(Processor *proc) {
                     elem_t topElem = 0;
                     StackTop(&proc->stack, &topElem);
                     printf("Stack top element : %lld\n", topElem);
-                    ++proc->ip;
                     break;
                 }
             case CMD_PUSH:
-                StackPush(&proc->stack, proc->code + proc->ip + 1);
-                proc->ip += 1 + sizeof(num_t);
+                //TODO ERROR HANDLING
+                StackPush(&proc->stack, &arg);
                 break;
             case CMD_POP:
                 {
-                    elem_t temp = 0;
-                    StackPop(&proc->stack, &temp); 
-                    ++proc->ip;
+                    if (arg == 0) {
+                        elem_t temp = 0;
+                        StackPop(&proc->stack, &temp); 
+                    } else if (arg > 0 && arg < 5) {
+                        StackPop(&proc->stack, &proc->regs[arg - 1]);
+                    }
+
                     break;
                 }
             case CMD_ADD:

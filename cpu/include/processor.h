@@ -16,6 +16,11 @@ struct Processor {
     num_t regs[4];
 };
 
+const char CMD_MASK = 0x1F;
+const char MEM_MASK = 0x80;
+const char REG_MASK = 0x40;
+const char KONST_MASK = 0x20;
+
 enum AlgebraicOp : int {
     OP_ADD = 0,
     OP_SUB = 1,
