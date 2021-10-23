@@ -22,12 +22,15 @@ struct Registry {
     const int id;
 };
 
-const Registry regMap[4] = {
+//TODO CAPitalize
+const Registry REG_MAP[] = {
     {.name = "ax", .id = 1},
     {.name = "bx", .id = 2},
     {.name = "cx", .id = 3},
     {.name = "dx", .id = 4},
 };
+
+const size_t N_REGS = sizeof(REG_MAP);
 
 typedef long long num_t;
 
@@ -45,6 +48,7 @@ enum CompilationError : int {
     ERR_WRNG_ARG = 10,
 };
 
+//TODO MOVE TO SRC
 int getCommand(const char *textLine, command *curCommand, size_t *nArgs);
 
 int getRegId(const char *name);

@@ -2,15 +2,15 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <assert.h>
 
 #include "../include/fileUtils.h"
 #include "../include/decompiler.h"
 #include "../../commands.h"
 
 int writeCmd(FILE *fd, Command cmd, const char *arg) {
-#if PROT_LEVEL > 0
-    assert(cmd)
-#endif
+    assert(fd);
+    assert(arg);
 
     if (fprintf(fd, "%s ", getCmdName(cmd)) < 0) {
         return ERR_FILE_WRT;
@@ -29,19 +29,66 @@ int writeCmd(FILE *fd, Command cmd, const char *arg) {
 }
 
 const char *getCmdName(Command cmd) {
-    for (size_t i = 0; i < cmdSetLen; ++i) {
-        if (cmdNameMap[i].id == cmd) {
-            return cmdNameMap[i].name;
+    for (size_t i = 0; i < CMD_SET_LEN; ++i) {
+        if (CMD_NAME_MAP[i].id == cmd) {
+            return CMD_NAME_MAP[i].name;
         }
     }
     return nullptr;
 }
 
+char *getRegName(int id) {
+    for (size_t i = 0; i < N_REGS; ++i) {
+        if (id == REG_MAP[i].id) {
+            return (char *)REG_MAP[i].name;
+        }
+    }
+
+    return 0;
+}
+
+int getArgStr(char *argStr, char *code, size_t *ip, int cmd, int type) {
+    assert(argStr);
+    assert(code);
+    assert(ip);
+
+    char reg[8] = "";
+    char num[64] = "";
+    switch(cmd) {
+        case CMD_PUSH:
+            {
+                if (type & KONST_MASK) {
+                    sprintf(num, "%lld", *(num_t *)(code + *ip)); 
+                    *ip += sizeof(num_t);
+                }
+                if (type & REG_MASK) {
+                    sprintf(reg, "%s", code + *(ip++));
+                }
+                if (strcmp(reg, "") != 0 && strcmp(num, "") != 0) {
+                    sprintf(argStr, "%s+%s", reg, num); 
+                } else if (strcmp(reg, "") != 0) {
+                    sprintf(argStr, "%s", reg);
+                } else if (strcmp(num, "") != 0) {
+                    sprintf(argStr, "%s", num);
+                } 
+            }
+            break;
+        case CMD_POP:
+            if (type & REG_MASK) {
+                sprintf(argStr, "%s", code + *(ip++));
+            }
+            break;
+        default:
+            printf("This command isn't supposted to have arguments\n");
+            return 1;
+    }
+
+    return 0;
+}
+
 int decompile(const char *inPath, const char *outPath) {
-#if PROT_LEVEL > 0
     assert(inPath);
     assert(outPath);
-#endif
 
     size_t bufSize;
     char *fileBuf = readFile(inPath, &bufSize);
@@ -78,53 +125,52 @@ int decompile(const char *inPath, const char *outPath) {
 
     size_t ip = 0;
     while (ip < bufSize) {
-        switch(codeBuf[ip]) {
+
+        int cmd = codeBuf[ip] & CMD_MASK;
+        printf("Command : %x\n", cmd);
+        int type = codeBuf[ip];
+        printf("type : %x\n", type);
+        ++ip;
+        
+        char *argStr = (char *)calloc(64, sizeof(*argStr));
+        int ret = getArgStr(argStr, codeBuf, &ip, cmd, type); 
+        if (ret != 0) {
+            free(argStr);
+            return ERR_GET_ARG;
+        }
+
+        switch(cmd) {
             case CMD_HLT:
                 writeCmd(outFile, CMD_HLT);
-                ++ip;
                 break;
 #if PROT_LEVEL > 0 
             case CMD_VER:
                 writeCmd(outFile, CMD_VER);
-                ++ip;
                 break;
             case CMD_DMP:
                 writeCmd(outFile, CMD_DMP);
-                ++ip;
                 break;
 #endif
             case CMD_OUT:
                 writeCmd(outFile, CMD_OUT);
-                ++ip;
                 break;
             case CMD_PUSH:
-                {
-                    char *argStr = (char *)calloc(64, sizeof(*argStr));
-                    sprintf(argStr, "%lld", *(num_t *)(codeBuf + ip + 1));
-                    writeCmd(outFile, CMD_PUSH, argStr);
-                    ip += 1 + sizeof(num_t);
-                    free(argStr);
-                    break;
-                }
+                writeCmd(outFile, CMD_PUSH, argStr);
+                break;
             case CMD_POP:
-                writeCmd(outFile, CMD_POP);
-                ++ip;
+                writeCmd(outFile, CMD_POP, argStr);
                 break;
             case CMD_ADD:
                 writeCmd(outFile, CMD_ADD);
-                ++ip;
                 break;
             case CMD_SUB:
                 writeCmd(outFile, CMD_SUB);
-                ++ip;
                 break;
             case CMD_MUL:
                 writeCmd(outFile, CMD_MUL);
-                ++ip;
                 break;
             case CMD_DIV:
                 writeCmd(outFile, CMD_DIV);
-                ++ip;
                 break;
             default:
                 printf("Undefined command\n");
@@ -132,6 +178,7 @@ int decompile(const char *inPath, const char *outPath) {
                 fclose(outFile);
                 return ERR_UNDEF_CMD;
         }
+        free(argStr);
     }
 
     free(fileBuf);

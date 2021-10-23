@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#include <assert.h>
 
 #include "../include/compiler.h"
 #include "../include/split.h"
@@ -9,6 +10,11 @@
 
 int printCompilationError(int errCode, size_t lineNum, const char *filePath,
         void *commandArray, FILE *outFile, text_t *text) {
+    assert(filePath);
+    assert(commandArray);
+    assert(outFile);
+    assert(text);
+
     printf("Error compiling file %s on line %zu:\n", filePath, lineNum + 1);
 
     switch(errCode) {
@@ -44,6 +50,10 @@ int printCompilationError(int errCode, size_t lineNum, const char *filePath,
 }
 
 int getCommand(const char *textLine, command *curCommand, size_t *nArgs) {
+    assert(textLine);
+    assert(curCommand);
+    assert(nArgs);
+
     if (sscanf(textLine, "%[^ ]s", curCommand->cmd) == 0) {
         return 1;
     } 
@@ -93,9 +103,11 @@ int getCommand(const char *textLine, command *curCommand, size_t *nArgs) {
 }
 
 int getRegId(const char *name) {
-    for (size_t i = 0; i < 4; ++i) {
-        if (strcmp(regMap[i].name, name) == 0) {
-            return regMap[i].id;
+    assert(name);
+
+    for (size_t i = 0; i < N_REGS; ++i) {
+        if (strcmp(REG_MAP[i].name, name) == 0) {
+            return REG_MAP[i].id;
         }
     }
 
@@ -103,6 +115,8 @@ int getRegId(const char *name) {
 }
 
 int compile(const char *inPath, const char *outPath) {
+    assert(inPath);
+    assert(outPath);
 
     text_t text = {};
     if (getText(inPath, &text) == 0) {
@@ -112,11 +126,13 @@ int compile(const char *inPath, const char *outPath) {
 
     FILE *outFile = fopen(outPath, "w");
     if (outFile == nullptr) {
+        //TODO stderr
         printf("Error opening file %s : %s\n", outPath, strerror(errno));
         freeText(&text);
         return ERR_FILE_OPN;
     }
 
+    //TODO global tag constant, sizeof
     char tag[4 + sizeof(unsigned int)] = "JEFF";
     unsigned int curVersion = CMD_SET_VERSION;
     unsigned int *ver = (unsigned int *)(tag + 4);
@@ -151,6 +167,7 @@ int compile(const char *inPath, const char *outPath) {
                     commandArray, outFile, &text); 
         }
 
+        //TODO hash string and switch on them
         if (strcmp(cur.cmd, "hlt") == 0) {
             if (numArgs != 0) {
                 return printCompilationError(ERR_ARG_COUNT, i, inPath,

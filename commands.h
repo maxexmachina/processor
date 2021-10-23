@@ -7,8 +7,6 @@ const unsigned int CMD_SET_VERSION = 1;
 
 typedef long long num_t;
 
-const size_t cmdSetLen = 10;
-
 //TODO in command`
 enum Command : int {
     CMD_HLT = 0,
@@ -28,7 +26,7 @@ struct Cmd {
     const char *name;
 };
 
-const Cmd cmdNameMap[cmdSetLen] = {
+const Cmd CMD_NAME_MAP[] = {
     {.id = 0, .name = "hlt"},
     {.id = 1, .name = "ver"},
     {.id = 2, .name = "dmp"},
@@ -40,5 +38,7 @@ const Cmd cmdNameMap[cmdSetLen] = {
     {.id = 8, .name = "mul"},
     {.id = 9, .name = "div"},
 }; 
+
+const size_t CMD_SET_LEN = sizeof(CMD_NAME_MAP);
 
 #endif

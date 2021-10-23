@@ -42,6 +42,10 @@ enum ProcessorError : int {
     ERR_STK_PUSH = 11,
 };
 
+num_t getArg(Processor *proc, int cmd, int type);
+
+const char *getCmdName(int cmd);
+
 int ProcessorRun(Processor *proc);
 
 int ProcessorInit(Processor *proc, const char *codePath);

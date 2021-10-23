@@ -9,24 +9,22 @@
 #include "../include/fileUtils.h"
 
 void freeFileBuf(char *codeBuf) {
-    if (codeBuf) {
-        free(codeBuf - 4 - sizeof(unsigned int));
-    }
+    assert(codeBuf);
+    free(codeBuf - 4 - sizeof(unsigned int));
 } 
 
 const char *getCmdName(int cmd) {
-    for (size_t i = 0; i < cmdSetLen; ++i) {
-        if (cmdNameMap[i].id == cmd) {
-            return cmdNameMap[i].name;
+    for (size_t i = 0; i < CMD_SET_LEN; ++i) {
+        if (CMD_NAME_MAP[i].id == cmd) {
+            return CMD_NAME_MAP[i].name;
         }
     }
     return nullptr;
 }
 
 int ProcessorInit(Processor *proc, const char *codePath) {
-#if PROT_LEVEL > 0
     assert(proc);
-#endif
+    assert(codePath);
 
     char *fileBuf = readFile(codePath, &proc->codeSize);
     if (fileBuf == nullptr) {
@@ -60,9 +58,8 @@ int ProcessorInit(Processor *proc, const char *codePath) {
 }
 
 int algebraicOperation(Stack *stack, AlgebraicOp op) {
-#if PROT_LEVEL > 0
     assert(stack);
-#endif
+
     elem_t lhs = 0;
     elem_t rhs = 0;
     int err = 0;
@@ -99,6 +96,8 @@ int algebraicOperation(Stack *stack, AlgebraicOp op) {
 }
 
 num_t getArg(Processor *proc, int cmd, int type) {
+    assert(proc);
+
     num_t arg = 0;
     switch(cmd) {
         case CMD_PUSH:
@@ -120,10 +119,8 @@ num_t getArg(Processor *proc, int cmd, int type) {
 }
 
 int ProcessorRun(Processor *proc) {
-#if PROT_LEVEL > 0
     assert(proc);
     assert(proc->code);
-#endif
 
     while (proc->ip < proc->codeSize) {
         int cmd = proc->code[proc->ip] & CMD_MASK;
