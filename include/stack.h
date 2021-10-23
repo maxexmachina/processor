@@ -12,7 +12,7 @@
     #endif
 #endif
 
-#include "../../config.h"
+#include "../config.h"
 
 //------------------ User type -------------
 

@@ -5,8 +5,8 @@
 
 #include "../../commands.h"
 #include "../../config.h"
-#include "../include/processor.h"
-#include "../include/fileUtils.h"
+#include "processor.h"
+#include "../../include/fileUtils.h"
 
 void freeFileBuf(char *codeBuf) {
     assert(codeBuf);

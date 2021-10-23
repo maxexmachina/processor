@@ -1,5 +1,5 @@
 CC		= g++ 
-CFLAGS = -std=c++17 -Wall -Wextra -Weffc++ -Wc++0x-compat -Wc++11-compat -Wc++14-compat
+CFLAGS = -std=c++14 -Wall -Wextra -Weffc++ -Wc++0x-compat -Wc++11-compat
 CFLAGS += -Waggressive-loop-optimizations -Walloc-zero -Walloca -Walloca-larger-than=8192 -Warray-bounds 
 CFLAGS += -Wcast-qual -Wchar-subscripts -Wconditionally-supported -Wconversion -Wctor-dtor-privacy 
 CFLAGS += -Wdangling-else -Wduplicated-branches -Wempty-body -Wfloat-equal -Wformat-nonliteral -Wformat-security 
@@ -14,33 +14,32 @@ CFLAGS += -Walloc-size-larger-than=1073741824 -Walloc-zero -Walloca -Walloca-lar
 CFLAGS += -Wdangling-else -Wduplicated-branches -Wformat-overflow=2 -Wformat-truncation=2 -Wmissing-attributes 
 CFLAGS += -Wmultistatement-macros -Wrestrict -Wshadow=global -Wsuggest-attribute=malloc -fcheck-new 
 CFLAGS += -fsized-deallocation -fstrict-overflow 
-CFLAGS += -flto-odr-type-merging -fno-omit-frame-pointer -I include
+CFLAGS += -flto-odr-type-merging -fno-omit-frame-pointer
 CFLAGS += -fsanitize=address
 BIN		= processor 
-RM		= rm -rf
-HDR		= include 
+RM      = rm -rf
 SRC		= src
 OBJ		= obj
-HDRS	= $(wildcard $(HDR)/*.h)
+HDRS	= $(wildcard $(SRC)/*.h)
 SRCS	= $(wildcard $(SRC)/*.cpp)
-OBJS	= $(patsubst $(SRC)/%.cpp, $(OBJ)/%.o, $(SRCS))
+OBJS    = $(patsubst $(SRC)/%.cpp, $(OBJ)/%.o, $(SRCS))
 
-all:		$(BIN)
+all:	$(BIN)
 
-$(BIN):		$(HDRS) $(OBJS)
-			$(CC) $(CFLAGS) $(OBJS) -o $(BIN)
+$(BIN):	$(HDRS) $(OBJS)
+		$(CC) $(CFLAGS) $(OBJS) -o $(BIN)
 
 $(OBJ)/%.o:	$(SRC)/%.cpp
 			mkdir -p $(OBJ)
 			$(CC) $(CFLAGS) -c $< -o $@
 
 clean:		
-			$(RM) $(OBJS)
+		$(RM) $(OBJS)
 
-fclean:		clean
-			$(RM) $(BIN)
+fclean:	clean
+		$(RM) $(BIN)
 
-re:			fclean all
+re:	fclean all
 
 
-.PHONY:		all clean fclean re
+.PHONY:	all clean fclean re

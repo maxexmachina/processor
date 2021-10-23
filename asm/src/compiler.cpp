@@ -3,8 +3,8 @@
 #include <errno.h>
 #include <assert.h>
 
-#include "../include/compiler.h"
-#include "../include/split.h"
+#include "compiler.h"
+#include "../../include/split.h"
 #include "../../commands.h"
 #include "../../config.h"
 

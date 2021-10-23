@@ -2,8 +2,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "../include/decompiler.h"
-#include "../include/fileUtils.h"
+#include "decompiler.h"
+#include "../../include/fileUtils.h"
 
 int main(int argc, char **argv) {
     //TODO REWRITE FILEUTILS FOR BINARY AND TEXT

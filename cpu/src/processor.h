@@ -1,7 +1,7 @@
 #ifndef PROCESSOR_H
 #define PROCESSOR_H
 
-#include "stack.h"
+#include "../../include/stack.h"
 #include "../../commands.h"
 
 const unsigned int PROCESSOR_VER = 1;

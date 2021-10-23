@@ -3,10 +3,10 @@
 #include <string.h>
 #include <errno.h>
 
-#include "../include/fileUtils.h"
-#include "../include/split.h"
-#include "../include/stack.h"
-#include "../include/processor.h"
+#include "../../include/fileUtils.h"
+#include "../../include/split.h"
+#include "../../include/stack.h"
+#include "processor.h"
 
 int main(int argc, char **argv) {
     if (argc != 2) {

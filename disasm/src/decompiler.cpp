@@ -4,8 +4,8 @@
 #include <string.h>
 #include <assert.h>
 
-#include "../include/fileUtils.h"
-#include "../include/decompiler.h"
+#include "../../include/fileUtils.h"
+#include "decompiler.h"
 #include "../../commands.h"
 
 int writeCmd(FILE *fd, Command cmd, const char *arg) {

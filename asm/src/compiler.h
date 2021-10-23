@@ -3,7 +3,7 @@
 
 #include <stdio.h>
 
-#include "../include/fileUtils.h"
+#include "../../include/fileUtils.h"
 
 struct command {
     char cmd[16];
