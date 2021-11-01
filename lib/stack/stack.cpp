@@ -5,8 +5,8 @@
 #include <string.h>
 #include <limits.h>
 
-#include "../include/stack.h"
-#include "../include/log.h"
+#include "stack.h"
+#include "log.h"
 
 char *formatInstance(const elem_t *instance) {
     if (!instance) {

@@ -1,6 +1,6 @@
 #include <stdarg.h>
 
-#include "../include/log.h"
+#include "log.h"
 
 int initLog() {
     logFile = fopen("stack_log.txt", "w");

@@ -1,7 +1,7 @@
 #include <stdlib.h>
 
-#include "../include/text.h"
-#include "../include/fileUtils.h"
+#include "text.h"
+#include "fileUtils.h"
 
 void freeText(text_t *text) {
     free(text->lines);

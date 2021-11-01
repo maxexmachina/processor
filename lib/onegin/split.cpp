@@ -3,7 +3,7 @@
 #include <errno.h>
 #include <stdio.h>
 
-#include "../include/split.h"
+#include "split.h"
 
 line *splitBuffer(char *buffer, size_t bufSize, size_t *totalLines) {
     size_t arrSize = DEFAULT_ARR_SIZE;

@@ -4,7 +4,7 @@
 #include <sys/stat.h>
 #include <errno.h>
 
-#include "../include/fileUtils.h"
+#include "fileUtils.h"
 
 size_t getFileSize(const char *filePath) {
     struct stat fileStats = {};

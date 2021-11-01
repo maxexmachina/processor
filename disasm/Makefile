@@ -16,6 +16,7 @@ CFLAGS += -Wmultistatement-macros -Wrestrict -Wshadow=global -Wsuggest-attribute
 CFLAGS += -fsized-deallocation -fstrict-overflow 
 CFLAGS += -flto-odr-type-merging -fno-omit-frame-pointer
 CFLAGS += -fsanitize=address
+CFLAGS += -L../lib
 BIN		= disassembler 
 RM      = rm -rf
 SRC		= src
@@ -27,7 +28,7 @@ OBJS    = $(patsubst $(SRC)/%.cpp, $(OBJ)/%.o, $(SRCS))
 all:	$(BIN)
 
 $(BIN):	$(HDRS) $(OBJS)
-		$(CC) $(CFLAGS) $(OBJS) -o $(BIN)
+	$(CC) $(CFLAGS) $(OBJS) -l:onegin.a -o $(BIN)
 
 $(OBJ)/%.o:	$(SRC)/%.cpp
 			mkdir -p $(OBJ)
