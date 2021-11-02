@@ -5,8 +5,7 @@
 
 #include "compiler.h"
 #include "../../include/split.h"
-#include "../../commands.h"
-#include "../../config.h"
+#include "../../commands.h" #include "../../config.h"
 
 int printCompilationError(int errCode, size_t lineNum, const char *filePath,
         void *commandArray, FILE *outFile, text_t *text) {
@@ -145,13 +144,13 @@ int compile(const char *inPath, const char *outPath) {
         return ERR_FILE_OPN;
     }
 
-    //TODO global tag constant, sizeof
-    char tag[4 + sizeof(unsigned int)] = "JEFF";
+    char tag[TYPE_TAG_LEN + VER_LEN] = "";
+	strcpy(tag, TYPE_TAG);
     unsigned int curVersion = CMD_SET_VERSION;
-    unsigned int *ver = (unsigned int *)(tag + 4);
+    unsigned int *ver = (ver_t *)(tag + TYPE_TAG_LEN);
     *ver = curVersion;
-    if (fwrite(tag, sizeof(*tag), 4 + sizeof(unsigned int),
-                outFile) != 4 + sizeof(unsigned int)) {
+    if (fwrite(tag, sizeof(*tag), TYPE_TAG_LEN + VER_LEN,
+                outFile) != TYPE_TAG_LEN + VER_LEN) {
         fprintf(stderr, "Error writing to file %s : %s\n", outPath, strerror(errno));
         freeText(&text);
         fclose(outFile);

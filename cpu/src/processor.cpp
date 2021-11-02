@@ -10,7 +10,7 @@
 
 void freeFileBuf(char *codeBuf) {
     assert(codeBuf);
-    free(codeBuf - 4 - sizeof(unsigned int));
+    free(codeBuf - TYPE_TAG_LEN - VER_LEN);
 } 
 
 const char *getCmdName(int cmd) {
@@ -31,9 +31,9 @@ int ProcessorInit(Processor *proc, const char *codePath) {
         return ERR_FILE_RD;
     }
 
-    char tag[5] = "";
-    memcpy(tag, fileBuf, 4);
-    tag[4] = '\0';
+    char tag[TYPE_TAG_LEN + 1] = "";
+    memcpy(tag, fileBuf, TYPE_TAG_LEN);
+    tag[TYPE_TAG_LEN] = '\0';
     printf("Read tag %s\n", tag);
     if (strcmp(tag, TYPE_TAG) != 0) {
         printf("Binary file type tag %s doesn't match the required %s\n", tag, TYPE_TAG);
@@ -41,17 +41,17 @@ int ProcessorInit(Processor *proc, const char *codePath) {
         return ERR_WRNG_TAG;
     }
 
-    unsigned int *ver = (unsigned int *)(fileBuf + 4);
+    ver_t *ver = (ver_t *)(fileBuf + TYPE_TAG_LEN);
     printf("Read version %u\n", *ver);
     if (*ver != PROCESSOR_VER) {
         printf("Specified command set version %u doesn't match the processor version %u\n", *ver, PROCESSOR_VER);
         free(fileBuf);
         return ERR_WRNG_CMD_SET;
     }
-    proc->code = fileBuf + 4 + sizeof(unsigned int);
-    proc->codeSize -= 4 + sizeof(unsigned int);
+    proc->code = fileBuf + TYPE_TAG_LEN + VER_LEN; 
+    proc->codeSize -= TYPE_TAG_LEN + VER_LEN;
 
-    StackCtor(&proc->stack, sizeof(num_t), 10);
+    StackCtor(&proc->stack, sizeof(num_t), DEFAULT_STACK_CAPACITY);
     proc->ip = 0;
 
     return 0;

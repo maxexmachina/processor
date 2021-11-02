@@ -6,7 +6,11 @@
 
 const unsigned int PROCESSOR_VER = 1;
 
-static const char *TYPE_TAG = "JEFF";
+static const char TYPE_TAG[] = "JEFF";
+const size_t TYPE_TAG_LEN = sizeof(TYPE_TAG);
+
+typedef unsigned int ver_t;
+const size_t VER_LEN = sizeof(ver_t);
 
 struct Processor {
     Stack stack;
@@ -14,6 +18,7 @@ struct Processor {
     size_t codeSize;
     size_t ip;
     num_t regs[4];
+	char *ram;
 };
 
 const unsigned char CMD_MASK = 0x1F;

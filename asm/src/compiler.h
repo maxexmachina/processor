@@ -9,6 +9,12 @@ typedef long long num_t;
 
 const size_t NUM_LEN = sizeof(num_t);
 
+static const char TYPE_TAG[] = "JEFF";
+const size_t TYPE_TAG_LEN = sizeof(TYPE_TAG);
+
+typedef unsigned int ver_t;
+const size_t VER_LEN = sizeof(ver_t);
+
 struct command_t {
     char cmd[16];
 	size_t numArgs;
