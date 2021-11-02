@@ -15,14 +15,26 @@ const size_t TYPE_TAG_LEN = sizeof(TYPE_TAG) - 1;
 typedef unsigned int ver_t;
 const size_t VER_LEN = sizeof(ver_t);
 
+const size_t MAX_LABEL_LEN = 16;
+const size_t NUM_LABELS = 4;
+
+struct label {
+	size_t addr;
+	char name[MAX_LABEL_LEN];
+};
+
+const size_t MAX_CMD_LEN = 16;
+
 struct command_t {
-    char cmd[16];
+    char cmd[MAX_CMD_LEN];
 	size_t numArgs;
     bool hasKonst;
     num_t konst;
     bool hasReg;
 	int reg;
 	bool hasRam;
+	bool hasLabel;
+	char label[MAX_LABEL_LEN];
 };
 
 const unsigned char RAM_BIT = 0x80;
@@ -34,7 +46,6 @@ struct Registry {
     const int id;
 };
 
-//TODO CAPitalize
 const Registry REG_MAP[] = {
     {.name = "ax", .id = 1},
     {.name = "bx", .id = 2},
@@ -57,6 +68,7 @@ enum CompilationError : int {
     ERR_CMD_BUFF_LEN = 8,
     ERR_WRNG_ARG = 10,
 };
+
 
 int getCommand(const char *textLine, command_t *curCommand);
 

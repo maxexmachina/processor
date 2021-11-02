@@ -232,6 +232,9 @@ int ProcessorRun(Processor *proc) {
                     return ERR_ALG_FLR;
                 } 
                 break;
+			case CMD_JMP:
+				proc->ip = proc->code[proc->ip++];
+				break;
             default:
                 fprintf(stderr, "Undefined command\n");
 				freeCpu(proc);

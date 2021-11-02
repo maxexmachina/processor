@@ -4,7 +4,7 @@
 #include "../../include/stack.h"
 #include "../../commands.h"
 
-const unsigned int PROCESSOR_VER = 1;
+const unsigned int PROCESSOR_VER = 2;
 
 static const char TYPE_TAG[] = "JEFF";
 const size_t TYPE_TAG_LEN = sizeof(TYPE_TAG) - 1;

@@ -3,7 +3,7 @@
 
 #include <sys/types.h>
 
-const unsigned int CMD_SET_VERSION = 1;
+const unsigned int CMD_SET_VERSION = 2;
 
 typedef long long num_t;
 
@@ -18,7 +18,15 @@ enum Command : int {
     CMD_ADD = 6,
     CMD_SUB = 7,
     CMD_MUL = 8,
-    CMD_DIV = 9
+    CMD_DIV = 9,
+	CMD_JMP = 10,
+	CMD_JA = 11,
+	CMD_JAE = 12,
+	CMD_JB = 13,
+	CMD_JBE = 14,
+	CMD_JE = 15,
+	CMD_JNE = 16,
+	CMD_JF = 17
 };
 
 struct Cmd {
@@ -37,8 +45,16 @@ const Cmd CMD_NAME_MAP[] = {
     {.id = 7, .name = "sub"},
     {.id = 8, .name = "mul"},
     {.id = 9, .name = "div"},
+    {.id = 10, .name = "jmp"},
+    {.id = 11, .name = "ja"},
+    {.id = 12, .name = "jae"},
+    {.id = 13, .name = "jb"},
+    {.id = 14, .name = "jbe"},
+    {.id = 15, .name = "je"},
+    {.id = 16, .name = "jne"},
+    {.id = 17, .name = "jf"},
 }; 
 
-const size_t CMD_SET_LEN = sizeof(CMD_NAME_MAP);
+const size_t CMD_SET_LEN = sizeof(CMD_NAME_MAP) / sizeof(*CMD_NAME_MAP);
 
 #endif
