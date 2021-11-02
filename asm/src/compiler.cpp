@@ -5,7 +5,8 @@
 
 #include "compiler.h"
 #include "../../include/split.h"
-#include "../../commands.h" #include "../../config.h"
+#include "../../commands.h" 
+#include "../../config.h"
 
 int printCompilationError(int errCode, size_t lineNum, const char *filePath,
         void *commandArray, FILE *outFile, text_t *text) {
@@ -54,14 +55,12 @@ int getCommand(const char *textLine, command_t *curCommand) {
     if (sscanf(textLine, "%[^ ]s", curCommand->cmd) == 0) {
         return 1;
     } 
-	printf("command : %s\n", curCommand->cmd);
 
     size_t numArgs = 0;
     curCommand->hasKonst = false;
     curCommand->hasReg = false;
 	curCommand->hasRam = false;
 
-	printf("%c\n", *(textLine + strlen(curCommand->cmd)));
 	if (*(textLine + strlen(curCommand->cmd)) == 0) {
 		numArgs = 0;
 		return 0;
@@ -71,7 +70,6 @@ int getCommand(const char *textLine, command_t *curCommand) {
 	num_t num = 0;
 	char regChar = 0;
 
-	printf("arg : %s\n", arg);
 	if (sscanf(arg, "[%cx + %lld]", &regChar, &num) == 2) {
 		curCommand->hasKonst = true;
 		curCommand->konst = num;
@@ -107,10 +105,6 @@ int getCommand(const char *textLine, command_t *curCommand) {
 		printf("Invalid argument fomatting\n");
 		return 1;
 	}
-	printf("reg: %c; num: %lld\n", regChar, num);
-	printf("Num args: %zu\n", numArgs);
-	printf("\n");
-	
     curCommand->numArgs = numArgs;
 
     return 0;
@@ -187,13 +181,13 @@ int compile(const char *inPath, const char *outPath) {
             commandArray[pc++] = CMD_HLT; 
 #if PROT_LEVEL > 0
         } else if (strcmp(cur.cmd, "ver") == 0) {
-            if (numArgs != 0) {
+            if (cur.numArgs != 0) {
                 return printCompilationError(ERR_ARG_COUNT, i, inPath,
                         commandArray, outFile, &text);
             }
             commandArray[pc++] = CMD_VER; 
         } else if (strcmp(cur.cmd, "dmp") == 0) {
-            if (numArgs != 0) {
+            if (cur.numArgs != 0) {
                 return printCompilationError(ERR_ARG_COUNT, i, inPath,
                         commandArray, outFile, &text);
             }

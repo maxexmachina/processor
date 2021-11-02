@@ -10,7 +10,7 @@ typedef long long num_t;
 const size_t NUM_LEN = sizeof(num_t);
 
 static const char TYPE_TAG[] = "JEFF";
-const size_t TYPE_TAG_LEN = sizeof(TYPE_TAG);
+const size_t TYPE_TAG_LEN = sizeof(TYPE_TAG) - 1;
 
 typedef unsigned int ver_t;
 const size_t VER_LEN = sizeof(ver_t);

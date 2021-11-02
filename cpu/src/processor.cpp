@@ -8,9 +8,11 @@
 #include "processor.h"
 #include "../../include/fileUtils.h"
 
-void freeFileBuf(char *codeBuf) {
-    assert(codeBuf);
-    free(codeBuf - TYPE_TAG_LEN - VER_LEN);
+void freeCpu(Processor *proc) {
+    assert(proc);
+    free(proc->code - TYPE_TAG_LEN - VER_LEN);
+	free(proc->ram);
+	StackDtor(&proc->stack);
 } 
 
 const char *getCmdName(int cmd) {
@@ -36,7 +38,7 @@ int ProcessorInit(Processor *proc, const char *codePath) {
     tag[TYPE_TAG_LEN] = '\0';
     printf("Read tag %s\n", tag);
     if (strcmp(tag, TYPE_TAG) != 0) {
-        printf("Binary file type tag %s doesn't match the required %s\n", tag, TYPE_TAG);
+        fprintf(stderr, "Binary file type tag %s doesn't match the required %s\n", tag, TYPE_TAG);
         free(fileBuf);
         return ERR_WRNG_TAG;
     }
@@ -44,12 +46,18 @@ int ProcessorInit(Processor *proc, const char *codePath) {
     ver_t *ver = (ver_t *)(fileBuf + TYPE_TAG_LEN);
     printf("Read version %u\n", *ver);
     if (*ver != PROCESSOR_VER) {
-        printf("Specified command set version %u doesn't match the processor version %u\n", *ver, PROCESSOR_VER);
+        fprintf(stderr, "Specified command set version %u doesn't match the processor version %u\n", *ver, PROCESSOR_VER);
         free(fileBuf);
         return ERR_WRNG_CMD_SET;
     }
     proc->code = fileBuf + TYPE_TAG_LEN + VER_LEN; 
     proc->codeSize -= TYPE_TAG_LEN + VER_LEN;
+
+	proc->ram = (char *)calloc(RAM_SIZE, sizeof(*proc->ram));
+	if (!proc->ram) {
+		free(fileBuf);
+		return ERR_NOMEM;
+	}
 
     StackCtor(&proc->stack, sizeof(num_t), DEFAULT_STACK_CAPACITY);
     proc->ip = 0;
@@ -80,13 +88,13 @@ int algebraicOperation(Stack *stack, AlgebraicOp op) {
             break;
         case OP_DIV:
             if (rhs == 0) {
-                printf("Cannot divide by zero\n");
+                fprintf(stderr, "Cannot divide by zero\n");
                 return ERR_DIV_ZERO;
             }
             res = lhs / rhs;
             break;
         default:
-            printf("Undefined algebraic operation\n");
+            fprintf(stderr, "Undefined algebraic operation\n");
             return ERR_UNDEF_ALG_OP;
     }
     StackPush(stack, &res, &err);
@@ -107,13 +115,25 @@ num_t getArg(Processor *proc, int cmd, int type) {
                     proc->ip += sizeof(num_t);
                 }
                 if (type & REG_MASK) arg += proc->regs[proc->code[proc->ip++] - 1];
+				if (type & RAM_MASK) arg = proc->ram[arg];
             }
             break;
         case CMD_POP:
-            if (type & REG_MASK) arg = proc->code[proc->ip++];
+			if (type & KONST_MASK) {
+				if (type & RAM_MASK) {
+					arg += *(num_t *)(proc->code + proc->ip);
+					proc->ip += sizeof(num_t);
+				}
+			}
+            if (type & REG_MASK) {
+				if (!(type & RAM_MASK)) arg = proc->code[proc->ip++];
+				else {
+					arg += proc->regs[proc->code[proc->ip++] - 1];
+				}
+			}
             break;
         default:
-            printf("This command isn't supposted to have arguments\n");
+            fprintf(stderr, "This command isn't supposted to have arguments\n");
     }
     return arg;
 }
@@ -130,8 +150,7 @@ int ProcessorRun(Processor *proc) {
         switch(cmd) {
             case CMD_HLT:
                 printf("Ending program run\n");
-                StackDtor(&proc->stack);
-                freeFileBuf(proc->code);
+				freeCpu(proc);
                 return 0;
                 break;
 #if PROT_LEVEL > 0 
@@ -146,15 +165,15 @@ int ProcessorRun(Processor *proc) {
                 {
                     elem_t topElem = 0;
                     int err = 0;
-                    StackTop(&proc->stack, &topElem, &err);
+                    StackPop(&proc->stack, &topElem, &err);
                     if (!err) { 
-                        printf("Stack top element : %lld\n", topElem);
+                        fprintf(stderr, "Stack top element : %lld\n", topElem);
                     } else if (err == STK_UNDERFL) {
-                        printf("No elements on the stack\n");
+                        fprintf(stderr, "No elements on the stack\n");
                     } else {
-                        printf("Undefined error in StackTop\n");
-                        freeFileBuf(proc->code);
-                        return ERR_STK_TOP;
+                        fprintf(stderr, "Undefined error in StackPop\n");
+						freeCpu(proc);
+                        return ERR_STK_POP;
                     }
                     break;
                 }
@@ -164,8 +183,8 @@ int ProcessorRun(Processor *proc) {
                     int err = 0;
                     StackPush(&proc->stack, &arg, &err);
                     if (err) {
-                        printf("Error in StackPush\n");
-                        freeFileBuf(proc->code);
+                        fprintf(stderr, "Error in StackPush\n");
+						freeCpu(proc);
                         return ERR_STK_PUSH;
                     }
                     break;
@@ -173,16 +192,24 @@ int ProcessorRun(Processor *proc) {
             case CMD_POP:
                 {
                     num_t arg = getArg(proc, cmd, type);
-                    if (arg == 0) {
+                    int err = 0;
+                    if (!(type & KONST_MASK) && !(type & REG_MASK) && !(type & RAM_MASK)) {
                         elem_t temp = 0;
-                        StackPop(&proc->stack, &temp); 
-                    } else if (arg > 0 && arg < 5) {
-                        StackPop(&proc->stack, &proc->regs[arg - 1]);
-                    } else {
-                        printf("Wrong register number in pop command\n");
-                        freeFileBuf(proc->code);
+                        StackPop(&proc->stack, &temp, &err); 
+                    } else if ((type & REG_MASK) && !(type & RAM_MASK)) {
+                        StackPop(&proc->stack, &proc->regs[arg - 1], &err);
+                    } else if (type & RAM_MASK) {
+                        StackPop(&proc->stack, &proc->ram[arg], &err);
+					} else {
+                        fprintf(stderr, "Wrong register number in pop command\n");
+						freeCpu(proc);
                         return ERR_WRNG_REG; 
                     }
+					if (err) {
+						fprintf(stderr, "Error in StackPop\n");
+						freeCpu(proc);
+						return ERR_STK_POP;
+					}
                     break;
                 }
             case CMD_ADD:
@@ -206,13 +233,12 @@ int ProcessorRun(Processor *proc) {
                 } 
                 break;
             default:
-                printf("Undefined command\n");
-                freeFileBuf(proc->code);
+                fprintf(stderr, "Undefined command\n");
+				freeCpu(proc);
                 return ERR_UNDEF_CMD;
         }
     }
 
-    StackDtor(&proc->stack);
-    freeFileBuf(proc->code);
+	freeCpu(proc);
     return 0;
 }
