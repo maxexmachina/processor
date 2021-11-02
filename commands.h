@@ -7,7 +7,7 @@ const unsigned int CMD_SET_VERSION = 1;
 
 typedef long long num_t;
 
-//TODO in command`
+//TODO in command
 enum Command : int {
     CMD_HLT = 0,
     CMD_VER = 1,

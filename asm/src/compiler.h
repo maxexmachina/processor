@@ -5,12 +5,18 @@
 
 #include "../../include/fileUtils.h"
 
-struct command {
+typedef long long num_t;
+
+const size_t NUM_LEN = sizeof(num_t);
+
+struct command_t {
     char cmd[16];
+	size_t numArgs;
     bool hasKonst;
-    long long int konst;
+    num_t konst;
     bool hasReg;
-    char reg[4];
+	int reg;
+	bool hasRam;
 };
 
 const unsigned char RAM_BIT = 0x80;
@@ -30,9 +36,7 @@ const Registry REG_MAP[] = {
     {.name = "dx", .id = 4},
 };
 
-const size_t N_REGS = sizeof(REG_MAP);
-
-typedef long long num_t;
+const size_t N_REGS = sizeof(REG_MAP) / sizeof(*REG_MAP);
 
 const int MAX_CMD_ARR_LEN = 4096;
 
@@ -48,10 +52,9 @@ enum CompilationError : int {
     ERR_WRNG_ARG = 10,
 };
 
-//TODO MOVE TO SRC
-int getCommand(const char *textLine, command *curCommand, size_t *nArgs);
+int getCommand(const char *textLine, command_t *curCommand);
 
-int getRegId(const char *name);
+int getRegId(char first);
 
 int compile(const char *inPath, const char *outPath=nullptr);
 
