@@ -16,7 +16,7 @@ int printCompilationError(int errCode, size_t lineNum, const char *filePath,
     assert(outFile);
     assert(text); 
 
-	printf("Error compiling file %s on line %zu:\n", filePath, lineNum + 1);
+	fprintf(stderr, "Error compiling file %s on line %zu:\n", filePath, lineNum + 1);
     switch(errCode) {
         case ERR_CMD_SCAN:
             fprintf(stderr, "Failed to scan a command : %s\n", strerror(errno));
@@ -72,7 +72,14 @@ int getCommand(const char *textLine, command_t *curCommand) {
 	num_t num = 0;
 	char regChar = 0;
 
-	if (strcmp(curCommand->cmd, "jmp") == 0) {
+	if (strcmp(curCommand->cmd, "jmp") == 0 || 
+		strcmp(curCommand->cmd, "ja") == 0 ||
+		strcmp(curCommand->cmd, "jae") == 0 ||
+		strcmp(curCommand->cmd, "jb") == 0 ||
+		strcmp(curCommand->cmd, "jbe") == 0 ||
+		strcmp(curCommand->cmd, "je") == 0 ||
+		strcmp(curCommand->cmd, "jne") == 0 ||
+		strcmp(curCommand->cmd, "jf") == 0) {
 		if (sscanf(arg, "%s", &curCommand->label) == 1) {
 			curCommand->hasLabel = true;
 			numArgs = 1;
@@ -167,6 +174,19 @@ int addLabel(label *labels, char *name, size_t addr) {
 	return 0;
  }
 
+void handleLabel(label *labels, char *name, char* commandArray, size_t *pc) {
+	if (containsLabel(labels, name)) {
+		addLabel(labels, name, SIZE_MAX); 
+		size_t *labelAddr = (size_t *)(commandArray + *pc);
+		*labelAddr = SIZE_MAX;
+		*pc += sizeof(size_t);
+	} else {
+		size_t *labelAddr = (size_t *)(commandArray + *pc);
+		*labelAddr = getLabelAddr(labels, name);
+		*pc += sizeof(size_t);
+	}
+}
+
 int compile(const char *inPath, const char *outPath) {
     assert(inPath);
     assert(outPath);
@@ -209,7 +229,6 @@ int compile(const char *inPath, const char *outPath) {
 	label labels[NUM_LABELS] = {};
 	size_t pc;
 	for (size_t iter = 0; iter < 2; ++iter) {
-		printf("iter\n\n");
 		pc = 0;
 		for (size_t i = 0; i < text.numLines; ++i) {
 			char *str;
@@ -218,7 +237,6 @@ int compile(const char *inPath, const char *outPath) {
 				if (str[len - 1] == ':') {
 					char labelName[MAX_LABEL_LEN] = "";
 					strncpy(labelName, str, len - 1);
-					printf("Found label : %s\n", labelName);
 					addLabel(labels, labelName, pc);
 					continue;
 				}
@@ -285,7 +303,7 @@ int compile(const char *inPath, const char *outPath) {
 					if (cur.numArgs == 1) {
 						args[0] = (char)cur.reg;
 					} else {
-						args[sizeof(num_t)] = cur.reg;
+						args[sizeof(num_t)] = (char)cur.reg;
 					}
 					++argLen;
 				}
@@ -353,20 +371,56 @@ int compile(const char *inPath, const char *outPath) {
 							commandArray, outFile, &text);
 				}
 				commandArray[pc++] = CMD_JMP;
-				if (containsLabel(labels, cur.label)) {
-					for (size_t i = 0; i < NUM_LABELS; ++i) {
-						printf("%zu : %s\n", labels[i].addr, labels[i].name);
-					}
-					printf("\n");
-					addLabel(labels, cur.label, SIZE_MAX); 
-					size_t *labelAddr = (size_t *)(commandArray + pc);
-					*labelAddr = SIZE_MAX;
-					pc += sizeof(size_t);
-				} else {
-					size_t *labelAddr = (size_t *)(commandArray + pc);
-					*labelAddr = getLabelAddr(labels, cur.label);
-					pc += sizeof(size_t);
+				handleLabel(labels, cur.label, commandArray, &pc);
+			} else if (strcmp(cur.cmd, "ja") == 0) {
+				if (cur.numArgs != 1) {
+					return printCompilationError(ERR_ARG_COUNT, i, inPath,
+							commandArray, outFile, &text);
 				}
+				commandArray[pc++] = CMD_JA;
+				handleLabel(labels, cur.label, commandArray, &pc);
+			} else if (strcmp(cur.cmd, "jae") == 0) {
+				if (cur.numArgs != 1) {
+					return printCompilationError(ERR_ARG_COUNT, i, inPath,
+							commandArray, outFile, &text);
+				}
+				commandArray[pc++] = CMD_JAE;
+				handleLabel(labels, cur.label, commandArray, &pc);
+			} else if (strcmp(cur.cmd, "jb") == 0) {
+				if (cur.numArgs != 1) {
+					return printCompilationError(ERR_ARG_COUNT, i, inPath,
+							commandArray, outFile, &text);
+				}
+				commandArray[pc++] = CMD_JB;
+				handleLabel(labels, cur.label, commandArray, &pc);
+			} else if (strcmp(cur.cmd, "jbe") == 0) {
+				if (cur.numArgs != 1) {
+					return printCompilationError(ERR_ARG_COUNT, i, inPath,
+							commandArray, outFile, &text);
+				}
+				commandArray[pc++] = CMD_JBE;
+				handleLabel(labels, cur.label, commandArray, &pc);
+			} else if (strcmp(cur.cmd, "je") == 0) {
+				if (cur.numArgs != 1) {
+					return printCompilationError(ERR_ARG_COUNT, i, inPath,
+							commandArray, outFile, &text);
+				}
+				commandArray[pc++] = CMD_JE;
+				handleLabel(labels, cur.label, commandArray, &pc);
+			} else if (strcmp(cur.cmd, "jne") == 0) {
+				if (cur.numArgs != 1) {
+					return printCompilationError(ERR_ARG_COUNT, i, inPath,
+							commandArray, outFile, &text);
+				}
+				commandArray[pc++] = CMD_JNE;
+				handleLabel(labels, cur.label, commandArray, &pc);
+			} else if (strcmp(cur.cmd, "jf") == 0) {
+				if (cur.numArgs != 1) {
+					return printCompilationError(ERR_ARG_COUNT, i, inPath,
+							commandArray, outFile, &text);
+				}
+				commandArray[pc++] = CMD_JF;
+				handleLabel(labels, cur.label, commandArray, &pc);
 			} else {
 				return printCompilationError(ERR_UNDEF_CMD, i, inPath,
 						commandArray, outFile, &text);

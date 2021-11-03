@@ -65,4 +65,6 @@ void freeCpu(Processor *proc);
 
 int algebraicOperation(Stack *stack, AlgebraicOp op);
 
+int compareTopVals(Stack *stack, int *errCode = nullptr);
+
 #endif

@@ -2,6 +2,9 @@ push 0
 pop ax
 next:
 push ax
+push 10
+ja stop
+push ax
 push ax
 mul
 out
@@ -10,4 +13,5 @@ push 1
 add
 pop ax
 jmp next
+stop:
 hlt

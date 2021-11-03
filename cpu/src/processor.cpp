@@ -70,6 +70,7 @@ int algebraicOperation(Stack *stack, AlgebraicOp op) {
 
     elem_t lhs = 0;
     elem_t rhs = 0;
+	//TODO WHAT THE EFUCK
     int err = 0;
     StackPop(stack, &rhs, &err);
     if (err != 0) return err;
@@ -138,6 +139,23 @@ num_t getArg(Processor *proc, int cmd, int type) {
     return arg;
 }
 
+int compareTopVals(Stack *stack, int *errCode) {
+    elem_t lhs = 0;
+    elem_t rhs = 0;
+    int err = 0;
+    StackPop(stack, &rhs, &err);
+    if (err != 0 && errCode) { 
+		*errCode = err;
+		return 0;
+	}
+    StackPop(stack, &lhs, &err);
+    if (err != 0 && errCode) { 
+		*errCode = err;
+		return 0;
+	}
+	return lhs - rhs;
+}
+
 int ProcessorRun(Processor *proc) {
     assert(proc);
     assert(proc->code);
@@ -167,7 +185,7 @@ int ProcessorRun(Processor *proc) {
                     int err = 0;
                     StackPop(&proc->stack, &topElem, &err);
                     if (!err) { 
-                        fprintf(stderr, "Stack top element : %lld\n", topElem);
+                        printf("%lld\n", topElem);
                     } else if (err == STK_UNDERFL) {
                         fprintf(stderr, "No elements on the stack\n");
                     } else {
@@ -235,6 +253,54 @@ int ProcessorRun(Processor *proc) {
 			case CMD_JMP:
 				proc->ip = proc->code[proc->ip++];
 				break;
+			case CMD_JA:
+				if (compareTopVals(&proc->stack) > 0) {
+					proc->ip = proc->code[proc->ip++];
+				} else {
+					proc->ip += sizeof(size_t);
+				}
+				break;
+			case CMD_JAE:
+				if (compareTopVals(&proc->stack) >= 0) {
+					proc->ip = proc->code[proc->ip];
+				} else {
+					proc->ip += sizeof(size_t);
+				}
+				break;
+			case CMD_JB:
+				if (compareTopVals(&proc->stack) < 0) {
+					proc->ip = proc->code[proc->ip];
+				} else {
+					proc->ip += sizeof(size_t);
+				}
+				break;
+			case CMD_JBE:
+				if (compareTopVals(&proc->stack) <= 0) {
+					proc->ip = proc->code[proc->ip];
+				} else {
+					proc->ip += sizeof(size_t);
+				}
+				break;
+			case CMD_JE:
+				if (compareTopVals(&proc->stack) == 0) {
+					proc->ip = proc->code[proc->ip];
+				} else {
+					proc->ip += sizeof(size_t);
+				}
+				break;
+			case CMD_JNE:
+				if (compareTopVals(&proc->stack) != 0) {
+					proc->ip = proc->code[proc->ip];
+				} else {
+					proc->ip += sizeof(size_t);
+				}
+				break;
+				/*
+			case CMD_JF:
+				proc->ip = proc->code[proc->ip];
+				++proc->ip;
+				break;
+				*/
             default:
                 fprintf(stderr, "Undefined command\n");
 				freeCpu(proc);

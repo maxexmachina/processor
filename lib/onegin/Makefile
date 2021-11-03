@@ -13,7 +13,7 @@ RM		= rm -f
 
 CFLAGS	= -Wall -Wextra -Werror
 
-.c.o:		$(HDRS)
+.c.o:		
 			$(CC) $(CFLAGS) -c $< -o $(<:.cpp=.o)  
 
 $(NAME):	$(OBJS)
