@@ -4,7 +4,7 @@
 #include "../../include/stack.h"
 #include "../../commands.h"
 
-const unsigned int PROCESSOR_VER = 2;
+const unsigned int PROCESSOR_VER = 3;
 
 static const char TYPE_TAG[] = "JEFF";
 const size_t TYPE_TAG_LEN = sizeof(TYPE_TAG) - 1;
@@ -16,8 +16,11 @@ const size_t RAM_SIZE = 1048576;
 
 const size_t N_REGS = 4;
 
+const size_t CALL_STACK_SIZE = 16;
+
 struct Processor {
     Stack stack;
+	Stack callStack;
     char *code;
     size_t codeSize;
     size_t ip;

@@ -13,6 +13,7 @@ void freeCpu(Processor *proc) {
     free(proc->code - TYPE_TAG_LEN - VER_LEN);
 	free(proc->ram);
 	StackDtor(&proc->stack);
+	StackDtor(&proc->callStack);
 } 
 
 const char *getCmdName(int cmd) {
@@ -60,6 +61,7 @@ int ProcessorInit(Processor *proc, const char *codePath) {
 	}
 
     StackCtor(&proc->stack, sizeof(num_t), DEFAULT_STACK_CAPACITY);
+	StackCtor(&proc->callStack, sizeof(size_t), CALL_STACK_SIZE);
     proc->ip = 0;
 
     return 0;
@@ -301,6 +303,34 @@ int ProcessorRun(Processor *proc) {
 				++proc->ip;
 				break;
 				*/
+			case CMD_CALL:
+				{
+					size_t retAddr = proc->ip + sizeof(size_t);
+					int err = 0;
+					StackPush(&proc->callStack, &retAddr, &err);
+                    if (err) {
+                        fprintf(stderr, "Error in StackPush\n");
+						freeCpu(proc);
+                        return ERR_STK_PUSH;
+                    }
+					proc->ip = proc->code[proc->ip++];
+				}
+				break;
+			case CMD_RET:
+				{
+					elem_t topElem = 0;
+					int err = 0;
+					StackPop(&proc->callStack, &topElem, &err);
+					if (err == STK_UNDERFL) {
+						fprintf(stderr, "No elements on the stack\n");
+					} else if (err) {
+						fprintf(stderr, "Undefined error in StackPop\n");
+						freeCpu(proc);
+						return ERR_STK_POP;
+					}
+					proc->ip = topElem;
+				}
+				break;
             default:
                 fprintf(stderr, "Undefined command\n");
 				freeCpu(proc);

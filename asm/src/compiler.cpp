@@ -79,7 +79,8 @@ int getCommand(const char *textLine, command_t *curCommand) {
 		strcmp(curCommand->cmd, "jbe") == 0 ||
 		strcmp(curCommand->cmd, "je") == 0 ||
 		strcmp(curCommand->cmd, "jne") == 0 ||
-		strcmp(curCommand->cmd, "jf") == 0) {
+		strcmp(curCommand->cmd, "jf") == 0 ||
+		strcmp(curCommand->cmd, "call") == 0) {
 		if (sscanf(arg, "%s", &curCommand->label) == 1) {
 			curCommand->hasLabel = true;
 			numArgs = 1;
@@ -421,6 +422,19 @@ int compile(const char *inPath, const char *outPath) {
 				}
 				commandArray[pc++] = CMD_JF;
 				handleLabel(labels, cur.label, commandArray, &pc);
+			} else if (strcmp(cur.cmd, "call") == 0) {
+				if (cur.numArgs != 1) {
+					return printCompilationError(ERR_ARG_COUNT, i, inPath,
+							commandArray, outFile, &text);
+				}
+				commandArray[pc++] = CMD_CALL;
+				handleLabel(labels, cur.label, commandArray, &pc);
+			} else if (strcmp(cur.cmd, "ret") == 0) {
+				if (cur.numArgs != 0) {
+					return printCompilationError(ERR_ARG_COUNT, i, inPath,
+							commandArray, outFile, &text);
+				}
+				commandArray[pc++] = CMD_RET;
 			} else {
 				return printCompilationError(ERR_UNDEF_CMD, i, inPath,
 						commandArray, outFile, &text);

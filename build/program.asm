@@ -1,17 +1,35 @@
-push 0
-pop ax
-next:
-push ax
 push 10
-ja stop
-push ax
-push ax
-mul
-out
-push ax
-push 1
-add
 pop ax
-jmp next
-stop:
+push 20
+pop bx
+push 40
+pop cx
+push ax
+push bx
+push cx
+call discr
+push ax
+out
 hlt
+discr:
+pop cx
+pop bx
+pop ax
+push bx
+push bx
+mul
+call doshit
+push dx
+push ax
+push cx
+mul
+mul
+sub
+pop ax
+ret
+doshit:
+push 2
+push 2
+add
+pop dx
+ret
