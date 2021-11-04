@@ -54,6 +54,7 @@ enum ProcessorError : int {
     ERR_STK_PUSH = 11,
 	ERR_NOMEM = 12,
 	ERR_WRNG_ARG = 13,
+	ERR_SCANF = 14,
 };
 
 num_t getArg(Processor *proc, int cmd, int type);

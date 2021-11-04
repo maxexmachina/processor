@@ -197,6 +197,21 @@ int ProcessorRun(Processor *proc) {
                     }
                     break;
                 }
+			case CMD_IN:
+				{
+					num_t num = 0;
+					if (scanf("%lld", &num) != 1) {
+						fprintf(stderr, "Error scanning the number\n");
+						freeCpu(proc);
+						return ERR_SCANF; 
+					}
+					int err = 0;
+					StackPush(&proc->stack, &num, &err); 
+					if (err) {
+						return ERR_STK_PUSH;
+					}
+				}
+				break;
             case CMD_PUSH:
                 {
                     num_t arg = getArg(proc, cmd, type);

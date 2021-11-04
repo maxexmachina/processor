@@ -15,6 +15,7 @@ const size_t TYPE_TAG_LEN = sizeof(TYPE_TAG) - 1;
 typedef unsigned int ver_t;
 const size_t VER_LEN = sizeof(ver_t);
 
+const size_t MAX_LINE_LEN = 64;
 const size_t MAX_LABEL_LEN = 16;
 const size_t NUM_LABELS = 4;
 

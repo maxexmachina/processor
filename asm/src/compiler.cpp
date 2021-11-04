@@ -200,7 +200,6 @@ int compile(const char *inPath, const char *outPath) {
 
     FILE *outFile = fopen(outPath, "w");
     if (outFile == nullptr) {
-        //TODO stderr
         fprintf(stderr, "Error opening file %s : %s\n", outPath, strerror(errno));
         freeText(&text);
         return ERR_FILE_OPN;
@@ -232,17 +231,16 @@ int compile(const char *inPath, const char *outPath) {
 	for (size_t iter = 0; iter < 2; ++iter) {
 		pc = 0;
 		for (size_t i = 0; i < text.numLines; ++i) {
-			char *str;
-			if (sscanf(text.lines[i].ptr, "%ms\n", &str) == 1) {
-				size_t len = strlen(str);
-				if (str[len - 1] == ':') {
+			char line[MAX_LINE_LEN];
+			if (sscanf(text.lines[i].ptr, "%s\n", line) == 1) {
+				size_t len = strlen(line);
+				if (line[len - 1] == ':') {
 					char labelName[MAX_LABEL_LEN] = "";
-					strncpy(labelName, str, len - 1);
+					strncpy(labelName, line, len - 1);
 					addLabel(labels, labelName, pc);
 					continue;
 				}
 			}	
-			free(str);
 
 			command_t cur = {};
 			if (getCommand(text.lines[i].ptr, &cur) != 0) {
@@ -282,6 +280,12 @@ int compile(const char *inPath, const char *outPath) {
 							commandArray, outFile, &text);
 				}
 				commandArray[pc++] = CMD_OUT;
+			} else if (strcmp(cur.cmd, "in") == 0) {
+				if (cur.numArgs != 0) {
+					return printCompilationError(ERR_ARG_COUNT, i, inPath,
+							commandArray, outFile, &text);
+				}
+				commandArray[pc++] = CMD_IN;
 			} else if (strcmp(cur.cmd, "push") == 0) {
 				if (cur.numArgs < 1) {
 					return printCompilationError(ERR_ARG_COUNT, i, inPath,
@@ -440,9 +444,6 @@ int compile(const char *inPath, const char *outPath) {
 						commandArray, outFile, &text);
 			} 
 		}
-	}
-	for (size_t i = 0; i < NUM_LABELS; ++i) {
-		printf("%zu : %s\n", labels[i].addr, labels[i].name);
 	}
 
     if (fwrite(commandArray, sizeof(*commandArray), pc, outFile) != pc) {
