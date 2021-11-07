@@ -11,7 +11,7 @@ int main(int argc, char **argv) {
         ret = compile("clean.asm", "compiled.jf");
         return ret;
     } else if (argc == 4) {
-        if (strcmp(argv[2], "-c") != 0) {
+        if (strcmp(argv[2], "-o") != 0) {
             printf("Unexpected flag : %s\n", argv[2]);
             return EXIT_FAILURE;
         }

@@ -15,7 +15,7 @@ Each part has its own executable, but really they are meant to be used together.
 
 ## ASSembler
 The assembler program reads a text file written in a custom assembly language
-and compiles it to a binary that can be then read by the CPU for execution.\
+and compiles it to a binary (compiled.jf by default) that can be then read by the CPU for execution.
   
 Currently the following assembler commands are supported:
 - __hlt__ - Ends program execution
@@ -45,6 +45,7 @@ Currently the following assembler commands are supported:
 - __ret__ - Returns to the function call site
 
 Labels are specified in the following form:
+```
      jmp label
      ..
      some
@@ -55,9 +56,49 @@ Labels are specified in the following form:
         more
         kode
         ..  
+```
           
 The assembler ignores leading whitespaces and empty lines, so you can format your code to be more readable (just be careful not to add any extra spaces before and after command arguments or it won't compile)
 
+You can find example .asm programs in the __examples__ folder of the repo
+
 ## DisASSembler 
-## Processor 
+The disassembler program reads a binary .jf file and decompiles it into the custom assembler program with using the command set described in the [ASSembler](#assembler) section
+## Processor
+The processor program takes in a compiled binary .jf file and executes the program from it. The processor version must match the command set version or the processor won't work.  
+
+The processor has a dynamic stack for handling numeric values, 8 registers __ax - hx__ for storing values, a call stack that makes nested function calls possible and a 1 MB RAM (you can change its size by recompiling with a different __RAM_SIZE__ value)
 ## Usage
+### Prerequisites
+Unix based system or WSL(code written for Linux originally), __git(kinda)__, __gcc__, __make__  
+
+You have to first compile the source code by using make in the root directory of the repo
+```
+git clone https://github.com/morgunovmi/processor && cd processor/
+
+make && cd build/
+```
+
+
+Once you have written an assembler program you can compile it by running
+```
+./assembler program.asm
+```
+which will result in a __compiled.jf__ binary file. You can also explicitly name the binary file with the __-o__ flag
+```
+./assembler program.asm -o my_name_is.jf
+```
+By default this program also outputs a __clean.asm__ file, that contains your code without extra whitespaces. And obviously your program file has to be in the same directory as the executable.  
+
+You can decompile a binary file by running
+```
+./disassembler compiled.jf
+or
+./disassembler compiled.jf -o bollocks.asm
+```
+You can run the compiled binary with the following command
+```
+./processor compiled.jf
+```
+### GLHF!, @me with errors
+
