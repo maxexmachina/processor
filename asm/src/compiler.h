@@ -4,10 +4,7 @@
 #include <stdio.h>
 
 #include "../../include/fileUtils.h"
-
-typedef long long num_t;
-
-const size_t NUM_LEN = sizeof(num_t);
+#include "../../commands.h"
 
 static const char TYPE_TAG[] = "JEFF";
 const size_t TYPE_TAG_LEN = sizeof(TYPE_TAG) - 1;
@@ -17,7 +14,7 @@ const size_t VER_LEN = sizeof(ver_t);
 
 const size_t MAX_LINE_LEN = 64;
 const size_t MAX_LABEL_LEN = 16;
-const size_t NUM_LABELS = 4;
+const size_t NUM_LABELS = 64;
 
 struct label {
 	size_t addr;
@@ -52,6 +49,10 @@ const Registry REG_MAP[] = {
     {.name = "bx", .id = 2},
     {.name = "cx", .id = 3},
     {.name = "dx", .id = 4},
+    {.name = "ex", .id = 5},
+    {.name = "fx", .id = 6},
+    {.name = "gx", .id = 7},
+    {.name = "hx", .id = 8},
 };
 
 const size_t N_REGS = sizeof(REG_MAP) / sizeof(*REG_MAP);

@@ -49,6 +49,10 @@ int printCompilationError(int errCode, size_t lineNum, const char *filePath,
     return errCode;
 }
 
+num_t doubleToNum(double num) {
+	return (num_t)(num * FX_POINT_PRECISION);
+}
+
 int getCommand(const char *textLine, command_t *curCommand) {
     assert(textLine);
     assert(curCommand);
@@ -69,7 +73,7 @@ int getCommand(const char *textLine, command_t *curCommand) {
 	}
 	char *arg = (char *)(textLine + strlen(curCommand->cmd) + 1);
 
-	num_t num = 0;
+	double num = 0;
 	char regChar = 0;
 
 	if (strcmp(curCommand->cmd, "jmp") == 0 || 
@@ -86,16 +90,16 @@ int getCommand(const char *textLine, command_t *curCommand) {
 			numArgs = 1;
 		}
 	} else { 
-		if (sscanf(arg, "[%cx + %lld]", &regChar, &num) == 2) {
+		if (sscanf(arg, "[%cx + %lf]", &regChar, &num) == 2) {
 			curCommand->hasKonst = true;
-			curCommand->konst = num;
+			curCommand->konst = doubleToNum(num);
 			curCommand->hasReg = true;
 			curCommand->reg = getRegId(regChar);
 			curCommand->hasRam = true;
 			numArgs = 2;
-		} else if (sscanf(arg, "[%lld]", &num) == 1) {
+		} else if (sscanf(arg, "[%lf]", &num) == 1) {
 			curCommand->hasKonst = true;
-			curCommand->konst = num;
+			curCommand->konst = doubleToNum(num);
 			curCommand->hasRam = true;
 			numArgs = 1;
 		} else if (sscanf(arg, "[%cx]", &regChar) == 1) {
@@ -103,15 +107,15 @@ int getCommand(const char *textLine, command_t *curCommand) {
 			curCommand->reg = getRegId(regChar);
 			curCommand->hasRam = true;
 			numArgs = 1;
-		} else if (sscanf(arg, "%cx + %lld", &regChar, &num) == 2) {
+		} else if (sscanf(arg, "%cx + %lf", &regChar, &num) == 2) {
 			curCommand->hasKonst = true;
-			curCommand->konst = num;
+			curCommand->konst = doubleToNum(num);
 			curCommand->hasReg = true;
 			curCommand->reg = getRegId(regChar);
 			numArgs = 2;
-		} else if (sscanf(arg, "%lld", &num) == 1) {
+		} else if (sscanf(arg, "%lf", &num) == 1) {
 			curCommand->hasKonst = true;
-			curCommand->konst = num;
+			curCommand->konst = doubleToNum(num);
 			numArgs = 1;
 		} else if (sscanf(arg, "%cx", &regChar) == 1) {
 			curCommand->hasReg = true;
@@ -346,6 +350,12 @@ int compile(const char *inPath, const char *outPath) {
 
 				memcpy(commandArray + pc, args, argLen); 
 				pc += argLen;
+			} else if (strcmp(cur.cmd, "abs") == 0) {
+				if (cur.numArgs != 0) {
+					return printCompilationError(ERR_ARG_COUNT, i, inPath,
+							commandArray, outFile, &text);
+				}
+				commandArray[pc++] = CMD_ABS;
 			} else if (strcmp(cur.cmd, "add") == 0) {
 				if (cur.numArgs != 0) {
 					return printCompilationError(ERR_ARG_COUNT, i, inPath,
@@ -444,6 +454,9 @@ int compile(const char *inPath, const char *outPath) {
 						commandArray, outFile, &text);
 			} 
 		}
+	}
+	for (size_t i = 0; i < NUM_LABELS; i++) {
+		printf("%s : %zu\n", labels[i].name, labels[i].addr);
 	}
 
     if (fwrite(commandArray, sizeof(*commandArray), pc, outFile) != pc) {

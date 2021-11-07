@@ -58,7 +58,7 @@ int getArgStr(char *argStr, char *code, size_t *ip, int cmd, int type) {
         case CMD_PUSH:
             {
                 if (type & KONST_MASK) {
-                    sprintf(num, "%lld", *(num_t *)(code + *ip)); 
+                    sprintf(num, "%ld", *(num_t *)(code + *ip)); 
                     *ip += sizeof(num_t);
                 }
                 if (type & REG_MASK) {

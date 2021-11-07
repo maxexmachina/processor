@@ -13,7 +13,7 @@ char *formatInstance(const elem_t *instance) {
         return nullptr;
     }
     char *str = (char *)calloc(256, sizeof(*str));
-    sprintf(str, "%lld", *instance);
+    sprintf(str, "%ld", *instance);
     return str;
 }
 

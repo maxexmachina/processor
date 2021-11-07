@@ -20,7 +20,7 @@
 static const char *typeName = "long long int";
 
 //! Typedef for universal interface
-typedef long long int elem_t;
+typedef long int elem_t;
 
 //------------------------------------------------------------ 
 //! User defined function that formats their data type to a string for debug output

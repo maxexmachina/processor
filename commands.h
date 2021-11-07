@@ -5,7 +5,11 @@
 
 const unsigned int CMD_SET_VERSION = 3;
 
-typedef long long num_t;
+typedef long num_t;
+const size_t NUM_LEN = sizeof(num_t);
+
+const unsigned int FX_POINT_PRECISION = 1000; 
+const double EPSILON = 0.1;
 
 enum Command : int {
     CMD_HLT = 0,
@@ -29,6 +33,7 @@ enum Command : int {
 	CMD_CALL = 18,
 	CMD_RET = 19,
 	CMD_IN = 20,
+	CMD_ABS = 21,
 };
 
 struct Cmd {
@@ -58,6 +63,7 @@ const Cmd CMD_NAME_MAP[] = {
     {.id = 18, .name = "call"},
     {.id = 19, .name = "ret"},
     {.id = 20, .name = "in"},
+    {.id = 21, .name = "abs"},
 }; 
 
 const size_t CMD_SET_LEN = sizeof(CMD_NAME_MAP) / sizeof(*CMD_NAME_MAP);

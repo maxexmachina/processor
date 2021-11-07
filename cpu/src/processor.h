@@ -14,7 +14,7 @@ const size_t VER_LEN = sizeof(ver_t);
 
 const size_t RAM_SIZE = 1048576;
 
-const size_t N_REGS = 4;
+const size_t N_REGS = 8;
 
 const size_t CALL_STACK_SIZE = 16;
 
@@ -69,6 +69,6 @@ void freeCpu(Processor *proc);
 
 int algebraicOperation(Stack *stack, AlgebraicOp op);
 
-int compareTopVals(Stack *stack, int *errCode = nullptr);
+double compareTopVals(Stack *stack, int *errCode = nullptr);
 
 #endif

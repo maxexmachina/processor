@@ -25,6 +25,10 @@ const char *getCmdName(int cmd) {
     return nullptr;
 }
 
+bool isEqualDouble(double lhs, double rhs) {
+    return abs(lhs - rhs) < EPSILON;
+}
+
 int ProcessorInit(Processor *proc, const char *codePath) {
     assert(proc);
     assert(codePath);
@@ -72,7 +76,6 @@ int algebraicOperation(Stack *stack, AlgebraicOp op) {
 
     elem_t lhs = 0;
     elem_t rhs = 0;
-	//TODO WHAT THE EFUCK
     int err = 0;
     StackPop(stack, &rhs, &err);
     if (err != 0) return err;
@@ -87,14 +90,18 @@ int algebraicOperation(Stack *stack, AlgebraicOp op) {
             res = lhs - rhs;
             break;
         case OP_MUL:
-            res = lhs * rhs; 
+			printf("Mul %ld and %ld\n", lhs, rhs);
+            res = lhs * rhs / FX_POINT_PRECISION; 
+			printf("Res : %ld\n", res);
             break;
         case OP_DIV:
-            if (rhs == 0) {
+            if (isEqualDouble(0, (double)(rhs / FX_POINT_PRECISION))) {
                 fprintf(stderr, "Cannot divide by zero\n");
                 return ERR_DIV_ZERO;
             }
+			printf("div %ld and %ld\n", lhs, rhs);
             res = lhs / rhs;
+			printf("Res : %ld\n", res);
             break;
         default:
             fprintf(stderr, "Undefined algebraic operation\n");
@@ -141,7 +148,7 @@ num_t getArg(Processor *proc, int cmd, int type) {
     return arg;
 }
 
-int compareTopVals(Stack *stack, int *errCode) {
+double compareTopVals(Stack *stack, int *errCode) {
     elem_t lhs = 0;
     elem_t rhs = 0;
     int err = 0;
@@ -155,7 +162,14 @@ int compareTopVals(Stack *stack, int *errCode) {
 		*errCode = err;
 		return 0;
 	}
-	return lhs - rhs;
+	printf("Comparing %ld and %ld \n", lhs, rhs);
+	printf("Result: %f\n", (double)lhs / FX_POINT_PRECISION - (double)rhs / FX_POINT_PRECISION);
+	if (isEqualDouble((double)lhs / FX_POINT_PRECISION,
+		   	(double)rhs / FX_POINT_PRECISION)) {
+		printf("Zero\n");
+		return 0;
+	}
+	return (double)lhs / FX_POINT_PRECISION - (double)rhs / FX_POINT_PRECISION;
 }
 
 int ProcessorRun(Processor *proc) {
@@ -167,6 +181,8 @@ int ProcessorRun(Processor *proc) {
         int type = proc->code[proc->ip];
         ++proc->ip;
 
+		printf("Command %s\n", getCmdName(cmd));
+		printf("Ip: %zu\n", proc->ip - 1);
         switch(cmd) {
             case CMD_HLT:
                 printf("Ending program run\n");
@@ -187,9 +203,11 @@ int ProcessorRun(Processor *proc) {
                     int err = 0;
                     StackPop(&proc->stack, &topElem, &err);
                     if (!err) { 
-                        printf("%lld\n", topElem);
+                        printf("%.3f\n", (double)topElem / FX_POINT_PRECISION);
                     } else if (err == STK_UNDERFL) {
                         fprintf(stderr, "No elements on the stack\n");
+						freeCpu(proc);
+						return ERR_STK_POP;
                     } else {
                         fprintf(stderr, "Undefined error in StackPop\n");
 						freeCpu(proc);
@@ -199,14 +217,15 @@ int ProcessorRun(Processor *proc) {
                 }
 			case CMD_IN:
 				{
-					num_t num = 0;
-					if (scanf("%lld", &num) != 1) {
+					double num = 0;
+					if (scanf("%lf", &num) != 1) {
 						fprintf(stderr, "Error scanning the number\n");
 						freeCpu(proc);
 						return ERR_SCANF; 
 					}
+					num_t trunc_num = (num_t)(num * FX_POINT_PRECISION);
 					int err = 0;
-					StackPush(&proc->stack, &num, &err); 
+					StackPush(&proc->stack, &trunc_num, &err); 
 					if (err) {
 						return ERR_STK_PUSH;
 					}
@@ -217,6 +236,7 @@ int ProcessorRun(Processor *proc) {
                     num_t arg = getArg(proc, cmd, type);
                     int err = 0;
                     StackPush(&proc->stack, &arg, &err);
+					printf("Pushed %ld\n", arg);
                     if (err) {
                         fprintf(stderr, "Error in StackPush\n");
 						freeCpu(proc);
@@ -247,6 +267,25 @@ int ProcessorRun(Processor *proc) {
 					}
                     break;
                 }
+			case CMD_ABS:
+				{
+					num_t num = 0;
+					int err = 0;
+					StackPop(&proc->stack, &num, &err);
+					if (err) {
+						fprintf(stderr, "Error in StackPop\n");
+						freeCpu(proc);
+						return ERR_STK_POP;
+					}
+					num = abs(num);
+					StackPush(&proc->stack, &num, &err); 
+					if (err) {
+						fprintf(stderr, "Error in StackPush\n");
+						freeCpu(proc);
+						return ERR_STK_PUSH;
+					}
+					break;
+				}
             case CMD_ADD:
                 if (algebraicOperation(&proc->stack, OP_ADD) != 0) {
                     return ERR_ALG_FLR;
@@ -268,11 +307,14 @@ int ProcessorRun(Processor *proc) {
                 } 
                 break;
 			case CMD_JMP:
-				proc->ip = proc->code[proc->ip++];
+				printf("JMP\n");
+				printf("Jumping to %x\n", proc->code[proc->ip]);
+				proc->ip = proc->code[proc->ip];
 				break;
 			case CMD_JA:
 				if (compareTopVals(&proc->stack) > 0) {
-					proc->ip = proc->code[proc->ip++];
+					proc->ip = proc->code[proc->ip];
+					printf("JA\n");
 				} else {
 					proc->ip += sizeof(size_t);
 				}
@@ -287,12 +329,15 @@ int ProcessorRun(Processor *proc) {
 			case CMD_JB:
 				if (compareTopVals(&proc->stack) < 0) {
 					proc->ip = proc->code[proc->ip];
+					printf("JB\n");
 				} else {
 					proc->ip += sizeof(size_t);
 				}
 				break;
 			case CMD_JBE:
 				if (compareTopVals(&proc->stack) <= 0) {
+					printf("JBE\n");
+					printf("Jumping to %x\n", proc->code[proc->ip]);
 					proc->ip = proc->code[proc->ip];
 				} else {
 					proc->ip += sizeof(size_t);
@@ -300,6 +345,8 @@ int ProcessorRun(Processor *proc) {
 				break;
 			case CMD_JE:
 				if (compareTopVals(&proc->stack) == 0) {
+					printf("JE\n");
+					printf("Jumping to %x\n", proc->code[proc->ip]);
 					proc->ip = proc->code[proc->ip];
 				} else {
 					proc->ip += sizeof(size_t);
@@ -328,7 +375,8 @@ int ProcessorRun(Processor *proc) {
 						freeCpu(proc);
                         return ERR_STK_PUSH;
                     }
-					proc->ip = proc->code[proc->ip++];
+					printf("Calling at %x\n", (size_t)proc->code[proc->ip]);
+					proc->ip = (size_t)proc->code[proc->ip];
 				}
 				break;
 			case CMD_RET:
