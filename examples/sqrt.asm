@@ -2,50 +2,91 @@ in
 pop dx
 call sqrt
 
-push fx
+push ex 
 dmp
 out
 hlt
 
 sqrt:
-	push 1
-	pop fx
+    push 0
+    pop fx
+    push dx
+    pop gx
 
-	next:
-		push fx
-		push fx
-		mul
-		push dx
-		sub
-		abs
-		push 1
-		jbe stop
+    next:
+        push fx
+        push gx
+        add
+        push 2
+        div
+        pop hx
 
-		push fx
-		push fx
-		mul
-		push dx
+        push hx
+        push hx
+        push dx
+        je end_loop
 
-		jb right
-		push fx
-		push fx
-		mul
-		push dx
-		ja left
+        end_loop:
+            push hx
+            pop ex
+            jmp decimal
 
-	stop:
-		ret
+        push hx
+        push hx
+        push dx
+        jb left
 
-	right:
-		push fx
-		push 2
-		mul
-		pop fx
-		jmp next
+        push hx
+        push 1
+        sub
+        pop gx
 
-	left:
-		push fx
-		push 2
-		div
-		pop fx
-		jmp next
+        push fx
+        push gx
+        jbe next
+
+    decimal:
+        hlt
+        push 0.1
+        pop fx
+
+        push 0
+        pop gx
+
+        decimal_next:
+            push gx
+            push 3
+            jae stop
+
+            push ex
+            push ex
+            push dx
+            ja while_stop
+
+            push fx
+            push ex
+            add
+            pop ex
+
+            while_stop:
+                push ex
+                push fx 
+                sub
+                push ex
+
+                push fx
+                push 10
+                div
+                pop fx
+                jmp decimal_next
+
+            stop:
+                ret
+        
+        left:
+            push hx
+            push 1
+            add
+            pop fx
+            push hx
+            pop ex

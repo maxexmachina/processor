@@ -91,7 +91,7 @@ int algebraicOperation(Stack *stack, AlgebraicOp op) {
             break;
         case OP_MUL:
 			printf("Mul %ld and %ld\n", lhs, rhs);
-            res = lhs * rhs / FX_POINT_PRECISION; 
+            res = (double)lhs * (double)rhs / FX_POINT_PRECISION; 
 			printf("Res : %ld\n", res);
             break;
         case OP_DIV:
@@ -100,7 +100,7 @@ int algebraicOperation(Stack *stack, AlgebraicOp op) {
                 return ERR_DIV_ZERO;
             }
 			printf("div %ld and %ld\n", lhs, rhs);
-            res = lhs / rhs;
+            res = (double)lhs / (double)rhs * FX_POINT_PRECISION;
 			printf("Res : %ld\n", res);
             break;
         default:
@@ -309,11 +309,11 @@ int ProcessorRun(Processor *proc) {
 			case CMD_JMP:
 				printf("JMP\n");
 				printf("Jumping to %x\n", proc->code[proc->ip]);
-				proc->ip = proc->code[proc->ip];
+				proc->ip = *(size_t *)(proc->code + proc->ip);
 				break;
 			case CMD_JA:
 				if (compareTopVals(&proc->stack) > 0) {
-					proc->ip = proc->code[proc->ip];
+                    proc->ip = *(size_t *)(proc->code + proc->ip);
 					printf("JA\n");
 				} else {
 					proc->ip += sizeof(size_t);
@@ -321,14 +321,14 @@ int ProcessorRun(Processor *proc) {
 				break;
 			case CMD_JAE:
 				if (compareTopVals(&proc->stack) >= 0) {
-					proc->ip = proc->code[proc->ip];
+                    proc->ip = *(size_t *)(proc->code + proc->ip);
 				} else {
 					proc->ip += sizeof(size_t);
 				}
 				break;
 			case CMD_JB:
 				if (compareTopVals(&proc->stack) < 0) {
-					proc->ip = proc->code[proc->ip];
+                    proc->ip = *(size_t *)(proc->code + proc->ip);
 					printf("JB\n");
 				} else {
 					proc->ip += sizeof(size_t);
@@ -337,8 +337,8 @@ int ProcessorRun(Processor *proc) {
 			case CMD_JBE:
 				if (compareTopVals(&proc->stack) <= 0) {
 					printf("JBE\n");
-					printf("Jumping to %x\n", proc->code[proc->ip]);
-					proc->ip = proc->code[proc->ip];
+					printf("Jumping to %zu\n", *(size_t *)(proc->code + proc->ip));
+                    proc->ip = *(size_t *)(proc->code + proc->ip);
 				} else {
 					proc->ip += sizeof(size_t);
 				}
@@ -346,15 +346,15 @@ int ProcessorRun(Processor *proc) {
 			case CMD_JE:
 				if (compareTopVals(&proc->stack) == 0) {
 					printf("JE\n");
-					printf("Jumping to %x\n", proc->code[proc->ip]);
-					proc->ip = proc->code[proc->ip];
+					printf("Jumping to %zu\n", *(size_t *)(proc->code + proc->ip));
+                    proc->ip = *(size_t *)(proc->code + proc->ip);
 				} else {
 					proc->ip += sizeof(size_t);
 				}
 				break;
 			case CMD_JNE:
 				if (compareTopVals(&proc->stack) != 0) {
-					proc->ip = proc->code[proc->ip];
+                    proc->ip = *(size_t *)(proc->code + proc->ip);
 				} else {
 					proc->ip += sizeof(size_t);
 				}
@@ -375,8 +375,7 @@ int ProcessorRun(Processor *proc) {
 						freeCpu(proc);
                         return ERR_STK_PUSH;
                     }
-					printf("Calling at %x\n", (size_t)proc->code[proc->ip]);
-					proc->ip = (size_t)proc->code[proc->ip];
+					proc->ip = *(size_t *)(proc->code + proc->ip);
 				}
 				break;
 			case CMD_RET:

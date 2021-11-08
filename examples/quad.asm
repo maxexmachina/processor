@@ -66,6 +66,10 @@ quad:
 	neg_discr:
 		push 0
 		pop ax
+        push 0
+        pop bx
+        push 0
+        pop cx
 		ret
 
 	zero_discr:
@@ -80,6 +84,8 @@ quad:
 		push 1
 		pop ax
 		pop bx
+        push 0
+        pop cx
 		ret
 	
 	a_zero:
@@ -98,6 +104,8 @@ quad:
 
 		push dx
 		pop bx
+        push 0
+        pop cx
 		ret
 	
 	b_zero:
@@ -146,10 +154,6 @@ lin:
 	ret
 
 discr:
-	pop cx
-	pop bx
-	pop ax
-
 	push bx
 	push bx
 	mul
@@ -174,7 +178,8 @@ sqrt:
 		mul
 		push dx
 		sub
-		push 0.01
+		abs
+		push 1
 		jbe stop
 
 		push fx
@@ -182,20 +187,26 @@ sqrt:
 		mul
 		push dx
 
-		ja right
-		jmp left
+		jb right
+		push fx
+		push fx
+		mul
+		push dx
+		ja left
+
+	stop:
+		ret
 
 	right:
 		push fx
 		push 2
 		mul
+		pop fx
 		jmp next
 
 	left:
 		push fx
 		push 2
 		div
+		pop fx
 		jmp next
-	
-	stop:
-		ret
