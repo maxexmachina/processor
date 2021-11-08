@@ -449,6 +449,12 @@ int compile(const char *inPath, const char *outPath) {
 				}
 				commandArray[pc++] = CMD_CALL;
 				handleLabel(labels, cur.label, commandArray, &pc);
+			} else if (strcmp(cur.cmd, "draw") == 0) {
+				if (cur.numArgs != 0) {
+					return printCompilationError(ERR_ARG_COUNT, i, inPath,
+							commandArray, outFile, &text);
+				}
+				commandArray[pc++] = CMD_DRAW;
 			} else if (strcmp(cur.cmd, "ret") == 0) {
 				if (cur.numArgs != 0) {
 					return printCompilationError(ERR_ARG_COUNT, i, inPath,

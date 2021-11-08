@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <assert.h>
+#include <unistd.h>
 
 #include "../../commands.h"
 #include "../../config.h"
@@ -137,7 +138,9 @@ num_t getArg(Processor *proc, int cmd, int type) {
 				}
 			}
             if (type & REG_MASK) {
-				if (!(type & RAM_MASK)) arg = proc->code[proc->ip++];
+				if (!(type & RAM_MASK)) { 
+					arg = proc->code[proc->ip++];
+				}
 				else {
 					arg += proc->regs[proc->code[proc->ip++] - 1];
 				}
@@ -182,8 +185,8 @@ int ProcessorRun(Processor *proc) {
         int type = proc->code[proc->ip];
         ++proc->ip;
 
-		printf("Command %s\n", getCmdName(cmd));
-		printf("Ip: %zu\n", proc->ip - 1);
+		//printf("Command %s\n", getCmdName(cmd));
+		//printf("Ip: %zu\n", proc->ip - 1);
         switch(cmd) {
             case CMD_HLT:
                 printf("Ending program run\n");
@@ -234,10 +237,9 @@ int ProcessorRun(Processor *proc) {
 				break;
             case CMD_PUSH:
                 {
-                    num_t arg = getArg(proc, cmd, type);
+                    num_t arg = getArg(proc, cmd, type) / FX_POINT_PRECISION;
                     int err = 0;
                     StackPush(&proc->stack, &arg, &err);
-					printf("Pushed %ld\n", arg);
                     if (err) {
                         fprintf(stderr, "Error in StackPush\n");
 						freeCpu(proc);
@@ -255,7 +257,7 @@ int ProcessorRun(Processor *proc) {
                     } else if ((type & REG_MASK) && !(type & RAM_MASK)) {
                         StackPop(&proc->stack, &proc->regs[arg - 1], &err);
                     } else if (type & RAM_MASK) {
-                        StackPop(&proc->stack, &proc->ram[arg], &err);
+                        StackPop(&proc->stack, &proc->ram[arg / FX_POINT_PRECISION], &err);
 					} else {
                         fprintf(stderr, "Wrong register number in pop command\n");
 						freeCpu(proc);
@@ -328,14 +330,11 @@ int ProcessorRun(Processor *proc) {
                 } 
                 break;
 			case CMD_JMP:
-				printf("JMP\n");
-				printf("Jumping to %x\n", proc->code[proc->ip]);
 				proc->ip = *(size_t *)(proc->code + proc->ip);
 				break;
 			case CMD_JA:
 				if (compareTopVals(&proc->stack) > 0) {
                     proc->ip = *(size_t *)(proc->code + proc->ip);
-					printf("JA\n");
 				} else {
 					proc->ip += sizeof(size_t);
 				}
@@ -350,15 +349,12 @@ int ProcessorRun(Processor *proc) {
 			case CMD_JB:
 				if (compareTopVals(&proc->stack) < 0) {
                     proc->ip = *(size_t *)(proc->code + proc->ip);
-					printf("JB\n");
 				} else {
 					proc->ip += sizeof(size_t);
 				}
 				break;
 			case CMD_JBE:
 				if (compareTopVals(&proc->stack) <= 0) {
-					printf("JBE\n");
-					printf("Jumping to %zu\n", *(size_t *)(proc->code + proc->ip));
                     proc->ip = *(size_t *)(proc->code + proc->ip);
 				} else {
 					proc->ip += sizeof(size_t);
@@ -366,8 +362,6 @@ int ProcessorRun(Processor *proc) {
 				break;
 			case CMD_JE:
 				if (compareTopVals(&proc->stack) == 0) {
-					printf("JE\n");
-					printf("Jumping to %zu\n", *(size_t *)(proc->code + proc->ip));
                     proc->ip = *(size_t *)(proc->code + proc->ip);
 				} else {
 					proc->ip += sizeof(size_t);
@@ -399,6 +393,16 @@ int ProcessorRun(Processor *proc) {
 					proc->ip = *(size_t *)(proc->code + proc->ip);
 				}
 				break;
+			case CMD_DRAW:
+				{
+					size_t address = VRAM_ADDR;
+					while (proc->ram[address] != '\0') {
+						write(1, proc->ram + address, WIDTH); 
+						write(1, "\n", 1);
+						address += WIDTH;
+					}
+					break;
+				}
 			case CMD_RET:
 				{
 					elem_t topElem = 0;

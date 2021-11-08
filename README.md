@@ -43,6 +43,7 @@ Currently the following assembler commands are supported:
 - __je lbl__ - Jumps if __==__
 - __jne lbl__ - Jumps if __!=__
 - __call func__ - Jumps to a function with label __func__, the function must have a __ret__ in the end
+- __draw__ - Draws lines of specified width from VRAM to standard output until \0 in is encountered
 - __ret__ - Returns to the function call site
 
 Labels are specified in the following form:
@@ -101,5 +102,10 @@ You can run the compiled binary with the following command
 ```
 ./processor compiled.jf
 ```
+Don't forget to play around with the __ascii__ part of the __examples__,
+feel free to load your own ascii pictures into ascii.txt and then use the 
+program compiled from gen_ascii_asm.cpp to turn it into an .asm program that will
+draw that image to the console (don't forget to set the WIDTH const in the processor.h
+according to the size of your image.
 ### GLHF!, @me with errors
 

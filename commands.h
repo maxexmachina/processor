@@ -35,6 +35,7 @@ enum Command : int {
 	CMD_IN = 20,
 	CMD_ABS = 21,
 	CMD_SQRT = 22,
+	CMD_DRAW = 23,
 };
 
 struct Cmd {
@@ -66,6 +67,7 @@ const Cmd CMD_NAME_MAP[] = {
     {.id = 20, .name = "in"},
     {.id = 21, .name = "abs"},
     {.id = 22, .name = "sqrt"},
+    {.id = 23, .name = "draw"},
 }; 
 
 const size_t CMD_SET_LEN = sizeof(CMD_NAME_MAP) / sizeof(*CMD_NAME_MAP);
