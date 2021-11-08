@@ -34,7 +34,9 @@ quad:
 	push 0
 	je zero_discr
 
-	call sqrt
+	push dx
+	sqrt
+	pop dx
 
 	push bx
 	push -1
@@ -66,10 +68,12 @@ quad:
 	neg_discr:
 		push 0
 		pop ax
-        push 0
-        pop bx
-        push 0
-        pop cx
+
+		push 0
+		pop bx
+
+		push 0
+		pop cx
 		ret
 
 	zero_discr:
@@ -84,8 +88,9 @@ quad:
 		push 1
 		pop ax
 		pop bx
-        push 0
-        pop cx
+
+		push 0
+		pop cx
 		ret
 	
 	a_zero:
@@ -104,8 +109,9 @@ quad:
 
 		push dx
 		pop bx
-        push 0
-        pop cx
+
+		push 0
+		pop cx
 		ret
 	
 	b_zero:
@@ -167,46 +173,3 @@ discr:
 
 	pop dx 
 	ret
-
-sqrt:
-	push 1
-	pop fx
-
-	next:
-		push fx
-		push fx
-		mul
-		push dx
-		sub
-		abs
-		push 1
-		jbe stop
-
-		push fx
-		push fx
-		mul
-		push dx
-
-		jb right
-		push fx
-		push fx
-		mul
-		push dx
-		ja left
-
-	stop:
-		ret
-
-	right:
-		push fx
-		push 2
-		mul
-		pop fx
-		jmp next
-
-	left:
-		push fx
-		push 2
-		div
-		pop fx
-		jmp next

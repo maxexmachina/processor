@@ -350,6 +350,12 @@ int compile(const char *inPath, const char *outPath) {
 
 				memcpy(commandArray + pc, args, argLen); 
 				pc += argLen;
+			} else if (strcmp(cur.cmd, "sqrt") == 0) {
+				if (cur.numArgs != 0) {
+					return printCompilationError(ERR_ARG_COUNT, i, inPath,
+							commandArray, outFile, &text);
+				}
+				commandArray[pc++] = CMD_SQRT;
 			} else if (strcmp(cur.cmd, "abs") == 0) {
 				if (cur.numArgs != 0) {
 					return printCompilationError(ERR_ARG_COUNT, i, inPath,

@@ -13,6 +13,10 @@ sqrt:
     push dx
     pop gx
 
+	push fx
+	push gx
+	jbe next
+
     next:
         push fx
         push gx
@@ -23,30 +27,33 @@ sqrt:
 
         push hx
         push hx
+		mul
         push dx
         je end_loop
 
-        end_loop:
-            push hx
-            pop ex
-            jmp decimal
-
         push hx
         push hx
+		mul
         push dx
         jb left
 
-        push hx
-        push 1
-        sub
-        pop gx
+		push hx
+		push 1
+		sub
+		pop gx
 
-        push fx
-        push gx
-        jbe next
+		next_check:
+			push fx
+			push gx
+			jbe next
+
+		push ex
+		push ex
+		mul
+		push dx
+		je stop
 
     decimal:
-        hlt
         push 0.1
         pop fx
 
@@ -55,11 +62,13 @@ sqrt:
 
         decimal_next:
             push gx
-            push 3
+            push 1
             jae stop
 
+			while_next:
             push ex
             push ex
+			mul
             push dx
             ja while_stop
 
@@ -67,6 +76,7 @@ sqrt:
             push ex
             add
             pop ex
+			jmp while_next
 
             while_stop:
                 push ex
@@ -90,3 +100,16 @@ sqrt:
             pop fx
             push hx
             pop ex
+			jmp next_check 
+
+        end_loop:
+            push hx
+            pop ex
+
+			push ex
+			push ex
+			mul
+			push dx
+			je stop
+
+            jmp decimal

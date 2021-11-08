@@ -30,6 +30,7 @@ Currently the following assembler commands are supported:
 - __pop ax__ - Pops a value from the stack into the __ax__ register
 - __pop [1], ...__ - Pops the value from the stack into RAM
 - __abs__ - Takes the absolute value of the top stack element, and pushes it onto the stack
+- __sqrt__ - Takes the square root of the top stack element, and pushes it onto the stack
 - __add__ - Pops 2 values off the stack, adds them, pushes them back onto the stack, right operand is the top stack value
 - __sub__ - Adds 2 top stack values
 - __mul__ - Multiplies 2 top stack values

@@ -1,6 +1,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 #include <assert.h>
 
 #include "../../commands.h"
@@ -278,6 +279,26 @@ int ProcessorRun(Processor *proc) {
 						return ERR_STK_POP;
 					}
 					num = abs(num);
+					StackPush(&proc->stack, &num, &err); 
+					if (err) {
+						fprintf(stderr, "Error in StackPush\n");
+						freeCpu(proc);
+						return ERR_STK_PUSH;
+					}
+					break;
+				}
+			case CMD_SQRT:
+				{
+					num_t num = 0;
+					int err = 0;
+					StackPop(&proc->stack, &num, &err);
+					if (err) {
+						fprintf(stderr, "Error in StackPop\n");
+						freeCpu(proc);
+						return ERR_STK_POP;
+					}
+					double num_sqrt = sqrt((double)num / FX_POINT_PRECISION);
+					num = num_sqrt * FX_POINT_PRECISION;
 					StackPush(&proc->stack, &num, &err); 
 					if (err) {
 						fprintf(stderr, "Error in StackPush\n");
