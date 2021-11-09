@@ -12,6 +12,7 @@ Each part has its own executable, but really they are meant to be used together.
 * [DisASSembler](#disassembler)
 * [Processor](#processor)
 * [Usage](#usage)
+* [ASCII stuff](#ascii)
 
 ## ASSembler
 The assembler program reads a text file written in a custom assembly language
@@ -102,6 +103,8 @@ You can run the compiled binary with the following command
 ```
 ./processor compiled.jf
 ```
+
+## ASCII stuff
 Don't forget to play around with the __ascii__ part of the __examples__.
 For full support you need __ffmpeg__ and __jp2a__ programs:
 ```
@@ -109,7 +112,8 @@ sudo apt update
 sudo apt install jp2a
 sudo apt install ffmpeg
 ```
-You can use the a2asm program to turn your image into a .gasm program:
+You can use the a2asm program to turn your image into a .gasm program, current
+terminal dimensions are used for conversion
 ```
 ./a2asm img.jpeg
 or explicitly
