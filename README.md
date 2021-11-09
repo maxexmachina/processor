@@ -126,6 +126,7 @@ can enjoy your favourite show in ascii form in your terminal(without sound for n
 ./a2asm -v video.mp4
 ```
 This program will output a .gasm program that you can then compile and run!
+![sus](https://github.com/morgunovmi/processor/blob/master/sus.png)
 
 ### GLHF!, @me with errors
 
