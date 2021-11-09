@@ -12,7 +12,7 @@ Each part has its own executable, but really they are meant to be used together.
 * [DisASSembler](#disassembler)
 * [Processor](#processor)
 * [Usage](#usage)
-* [ASCII stuff](#ascii)
+* [ASCII stuff](#ascii-stuff)
 
 ## ASSembler
 The assembler program reads a text file written in a custom assembly language
