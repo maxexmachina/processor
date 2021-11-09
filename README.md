@@ -12,7 +12,7 @@ Each part has its own executable, but really they are meant to be used together.
 * [DisASSembler](#disassembler)
 * [Processor](#processor)
 * [Usage](#usage)
-* [ASCII stuff](#ascii)
+* [ASCII stuff](#ascii-stuff)
 
 ## ASSembler
 The assembler program reads a text file written in a custom assembly language
@@ -126,6 +126,7 @@ can enjoy your favourite show in ascii form in your terminal(without sound for n
 ./a2asm -v video.mp4
 ```
 This program will output a .gasm program that you can then compile and run!
+![sus](https://github.com/morgunovmi/processor/blob/master/sus.png)
 
 ### GLHF!, @me with errors
 
