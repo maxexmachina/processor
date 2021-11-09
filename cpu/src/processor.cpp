@@ -214,6 +214,8 @@ int ProcessorRun(Processor *proc) {
     assert(proc);
     assert(proc->code);
 
+	//system("play -q sample.mp3");
+
     while (proc->ip < proc->codeSize) {
         int cmd = proc->code[proc->ip] & CMD_MASK;
         int type = proc->code[proc->ip];

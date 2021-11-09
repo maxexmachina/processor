@@ -304,7 +304,7 @@ int gen_asm_vid(const char *vidPath, unsigned int term_width, unsigned int term_
 					}
 				} else {
 				*/
-				fprintf(outFile, "push %d\npop [%zu]\n", text.lines[i].ptr[j],
+				fprintf(outFile, "push %d\npop [%zu]\n", text.lines[frame * term_height + i].ptr[j],
 						VRAM_ADDR + i * term_width + j);
 			}
 		}
