@@ -4,6 +4,8 @@
 #include <math.h>
 #include <assert.h>
 #include <unistd.h>
+#include <time.h>
+#include <errno.h>
 
 #include "../../commands.h"
 #include "../../config.h"
@@ -17,6 +19,24 @@ void freeCpu(Processor *proc) {
 	StackDtor(&proc->stack);
 	StackDtor(&proc->callStack);
 } 
+int msleep(long tms) {
+    struct timespec ts;
+    int ret;
+
+    if (tms < 0) {
+        errno = EINVAL;
+        return -1;
+    }
+
+    ts.tv_sec = tms / 1000;
+    ts.tv_nsec = (tms % 1000) * 1000000;
+
+    do {
+        ret = nanosleep(&ts, &ts);
+    } while (ret && errno == EINTR);
+
+    return ret;
+}
 
 const char *getCmdName(int cmd) {
     for (size_t i = 0; i < CMD_SET_LEN; ++i) {
@@ -417,6 +437,9 @@ int ProcessorRun(Processor *proc) {
 					}
 					break;
 				}
+			case CMD_SLEEP:
+				msleep(1000 / 30);
+				break;
 			case CMD_RET:
 				{
 					elem_t topElem = 0;

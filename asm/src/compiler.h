@@ -57,7 +57,7 @@ const Registry REG_MAP[] = {
 
 const size_t N_REGS = sizeof(REG_MAP) / sizeof(*REG_MAP);
 
-const int MAX_CMD_ARR_LEN = 10000000;
+const size_t MAX_CMD_ARR_LEN = 10000000000;
 
 enum CompilationError : int {
     ERR_NOMEM = 1,

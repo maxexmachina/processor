@@ -455,6 +455,12 @@ int compile(const char *inPath, const char *outPath) {
 							commandArray, outFile, &text);
 				}
 				commandArray[pc++] = CMD_DRAW;
+			} else if (strcmp(cur.cmd, "sleep") == 0) {
+				if (cur.numArgs != 0) {
+					return printCompilationError(ERR_ARG_COUNT, i, inPath,
+							commandArray, outFile, &text);
+				}
+				commandArray[pc++] = CMD_SLEEP;
 			} else if (strcmp(cur.cmd, "ret") == 0) {
 				if (cur.numArgs != 0) {
 					return printCompilationError(ERR_ARG_COUNT, i, inPath,
@@ -466,9 +472,6 @@ int compile(const char *inPath, const char *outPath) {
 						commandArray, outFile, &text);
 			} 
 		}
-	}
-	for (size_t i = 0; i < NUM_LABELS; i++) {
-		printf("%s : %zu\n", labels[i].name, labels[i].addr);
 	}
 
     if (fwrite(commandArray, sizeof(*commandArray), pc, outFile) != pc) {

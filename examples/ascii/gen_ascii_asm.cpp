@@ -4,6 +4,7 @@
 #include <errno.h>
 #include <string.h>
 #include <stdlib.h>
+#include <dirent.h>
 
 enum FileType : int {
     TYPE_BINARY = 0,
@@ -39,7 +40,7 @@ char *readFile(const char *filePath, size_t *size, FileType type) {
         fclose(fileToRead);
         return nullptr;
     }
-    if (fread(readBuf, 1, fileSize, fileToRead) != fileSize) {
+    if (fread(readBuf, sizeof(*readBuf), fileSize, fileToRead) != fileSize) {
         printf("There was an error reading file %s : %s\n", filePath, strerror(errno));
         free(readBuf);
         fclose(fileToRead);
@@ -154,6 +155,7 @@ int gen_asm(const char *imgPath, unsigned int term_width, unsigned int term_heig
         fprintf(stderr, "Error getting lines from file %s\n", asciiPath);
         return 1;
     }
+	printf("Num lines: %zu\n", text.numLines);
 
 	command = (char *)calloc(128, sizeof(*command));
 	sprintf(command, "rm -rf %s",  asciiPath); 
@@ -174,33 +176,194 @@ int gen_asm(const char *imgPath, unsigned int term_width, unsigned int term_heig
 			fprintf(outFile, "push %d\npop [%zu]\n", text.lines[i].ptr[j], address++);
 		}
 	}
+	freeText(&text);
 	fprintf(outFile, "draw\njmp next\n");
 	fclose(outFile);
 
 	return 0;
 }
 
-int main(int argc, char **argv) {
-	if (argc < 2) {
-		printf("Please specify an image to convert\n");
-		return 1;
+
+const size_t MAX_FRAMES = 100000;
+
+char	*substr(char const *s, size_t start, size_t len)
+{
+	if (!s)
+		return nullptr;
+
+	size_t s_len = strlen(s);
+	size_t	cpy_len = 0;
+	if (start > s_len)
+		cpy_len = 0;
+	else if (start + len > s_len)
+		cpy_len = s_len - start;
+	else
+		cpy_len = len;
+
+	char *ret = (char *)calloc(cpy_len + 1, sizeof(*ret));
+	if (!ret) {
+		return nullptr;
 	}
 
-	const char *imgPath = argv[1];
+	size_t i = 0;
+	while (i < cpy_len) {
+		ret[i] = s[start + i];
+		++i;
+	}
+	ret[i] = '\0';
+	return ret;
+}
 
+int compStrs(const void *str1, const void *str2) {
+	const char *s1 = *(const char**)str1; 
+	const char *s2 = *(const char**)str2; 
+
+	const size_t len1 = strlen(s1);
+	const size_t len2 = strlen(s2);
+
+	char *sub1 = substr(s1, 3, len1 - 4);
+	char *sub2 = substr(s2, 3, len2 - 4);
+ 
+	int ret = atoi(sub1) -  atoi(sub2);
+
+	free(sub1);
+	free(sub2);
+
+	return ret; 
+}
+
+int gen_asm_vid(const char *vidPath, unsigned int term_width, unsigned int term_height) {
+	const char *asciiPath = "ascii.txt";
+
+	printf("Generating frames\n");
+	char *command = (char *)calloc(128, sizeof(*command));
+	sprintf(command, "rm -rf frames && mkdir frames && ffmpeg -i %s -r 24/1 frames/out%%03d.jpg\n", vidPath); 
+	system(command);
+	free(command);
+
+	char **filePaths = (char **)calloc(MAX_FRAMES, sizeof(*filePaths));
+	DIR *dir;
+	struct dirent *ent;
+
+	printf("Reading and sorting frame dir\n");
+	size_t numFiles = 0;
+	if ((dir = opendir("frames/")) != nullptr) {
+		while ((ent = readdir(dir)) != nullptr) {
+			filePaths[numFiles++] = strdup(ent->d_name);
+		}
+		closedir(dir);
+	} else {
+		perror("Error opening directory");
+		return EXIT_FAILURE;
+	}
+	qsort(filePaths, numFiles, sizeof(*filePaths), compStrs); 
+
+	printf("Generating ascii file\n");
+	for (size_t i = 2; i < numFiles; i++) {
+		command = (char *)calloc(128, sizeof(*command));
+
+		char fullPath[50] = "frames/";
+		strcat(fullPath, filePaths[i]);
+		sprintf(command, "jp2a --width=%u --height=%u %s >> %s\n", term_width, term_height, fullPath, asciiPath); 
+		system(command);
+		free(command);
+	}
+
+	printf("Reading ascii file lines\n");
+	text_t text = {};
+
+    if (getText(asciiPath, &text) == 0) {
+        fprintf(stderr, "Error getting lines from file %s\n", asciiPath);
+        return 1;
+    }
+	printf("Num lines: %zu\n", text.numLines);
+
+	command = (char *)calloc(128, sizeof(*command));
+	sprintf(command, "rm -rf %s",  asciiPath); 
+	system(command);
+	free(command);
+
+    FILE *outFile = fopen("ascii.gasm", "w");
+    if (outFile == nullptr) {
+        fprintf(stderr, "Error opening file %s : %s\n", "ascii.gasm", strerror(errno));
+        freeText(&text);
+        return 1;
+    }
+
+	printf("Generating asm\n");
+	fprintf(outFile, "next:\n");
+	for (size_t frame = 0; frame < numFiles - 2; frame++) {
+		for (size_t i = 0; i < term_height; i++) {
+			for (size_t j = 0; j < text.lines[i].len; j++) {
+				/*
+				if (frame > 0) {
+					if (text.lines[frame * term_height + i].ptr[j] !=
+							text.lines[(frame - 1) * term_height + i].ptr[j]) {
+						fprintf(outFile, "push %d\npop [%zu]\n", text.lines[frame * term_height + i].ptr[j],
+								VRAM_ADDR + i * term_width + j);
+					}
+				} else {
+				*/
+				fprintf(outFile, "push %d\npop [%zu]\n", text.lines[i].ptr[j],
+						VRAM_ADDR + i * term_width + j);
+			}
+		}
+		fprintf(outFile, "draw\nsleep\n");
+	}
+	fprintf(outFile, "jmp next\n");
+	fclose(outFile);
+
+	for (size_t i = 0; i < numFiles; i++) {
+		free(filePaths[i]);
+	}
+	free(filePaths);
+	freeText(&text);
+
+	return 0;
+}
+
+int main(int argc, char **argv) {
 	FILE *p = popen("tput cols && tput lines", "r");
 
 	if(!p) {
-        fprintf(stderr, "Error opening pipe.\n");
-        return 1;
-    }
+		fprintf(stderr, "Error opening pipe.\n");
+		return 1;
+	}
 
 	unsigned int term_width = 0;
 	unsigned int term_height = 0;
 	fscanf(p, "%u\n%u\n", &term_width, &term_height);
+	printf("width : %u, height: %u\n", term_width, term_height);
 	pclose(p);
 
-	if (gen_asm(imgPath, term_width, term_height) != 0) {
+	if (argc < 2) {
+		printf("Please specify an image to convert\n");
+		return 1;
+	} else if (argc == 2) {
+		const char *imgPath = argv[2];
+
+		if (gen_asm(imgPath, term_width, term_height) != 0) {
+			return 1;
+		}
+	} else if (argc == 3) {
+		if (strcmp(argv[1], "-i") == 0) {
+			const char *imgPath = argv[2];
+
+			if (gen_asm(imgPath, term_width, term_height) != 0) {
+				return 1;
+			}
+		} else if (strcmp(argv[1], "-v") == 0) {
+			const char *vidPath = argv[2];
+
+			if (gen_asm_vid(vidPath, term_width, term_height) != 0) {
+				return 1;
+			}
+		} else {
+			fprintf(stderr, "Unexpected flag %s\n", argv[1]);
+			return 1;
+		}
+	} else {
+		fprintf(stderr, "Too many arguments\n");
 		return 1;
 	}
 }

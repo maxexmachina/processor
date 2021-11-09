@@ -102,10 +102,25 @@ You can run the compiled binary with the following command
 ```
 ./processor compiled.jf
 ```
-Don't forget to play around with the __ascii__ part of the __examples__,
-feel free to load your own ascii pictures into ascii.txt and then use the 
-program compiled from gen_ascii_asm.cpp to turn it into an .asm program that will
-draw that image to the console (don't forget to set the WIDTH const in the processor.h
-according to the size of your image.
+Don't forget to play around with the __ascii__ part of the __examples__.
+For full support you need __ffmpeg__ and __jp2a__ programs:
+```
+sudo apt update
+sudo apt install jp2a
+sudo apt install ffmpeg
+```
+You can use the a2asm program to turn your image into a .gasm program:
+```
+./a2asm img.jpeg
+or explicitly
+./a2asm -i img.jpeg
+```
+And finally, you can even convert your video into a .gasm program, so you
+can enjoy your favourite show in ascii form in your terminal(without sound for now):
+```
+./a2asm -v video.mp4
+```
+This program will output a .gasm program that you can then compile and run!
+
 ### GLHF!, @me with errors
 
