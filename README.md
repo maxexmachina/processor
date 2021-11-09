@@ -105,6 +105,7 @@ You can run the compiled binary with the following command
 ```
 
 ## ASCII stuff
+
 Don't forget to play around with the __ascii__ part of the __examples__.
 For full support you need __ffmpeg__ and __jp2a__ programs:
 ```
