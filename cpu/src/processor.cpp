@@ -70,6 +70,20 @@ int ProcessorInit(Processor *proc, const char *codePath) {
 	StackCtor(&proc->callStack, sizeof(size_t), CALL_STACK_SIZE);
     proc->ip = 0;
 
+	FILE *p = popen("tput cols && tput lines", "r");
+
+	if(!p) {
+        fprintf(stderr, "Error opening pipe.\n");
+        return 1;
+    }
+
+	fscanf(p, "%zu\n%zu\n", &proc->term_width, &proc->term_height);
+
+	if (pclose(p) == EOF) {
+        fprintf(stderr," Error closing pipe!\n");
+        return 1;
+    }
+
     return 0;
 }
 
@@ -396,10 +410,10 @@ int ProcessorRun(Processor *proc) {
 			case CMD_DRAW:
 				{
 					size_t address = VRAM_ADDR;
-					while (proc->ram[address] != '\0') {
-						write(1, proc->ram + address, WIDTH); 
+					for (size_t i = 0; i < proc->term_height; i++) {
+						write(1, proc->ram + address, proc->term_width); 
 						write(1, "\n", 1);
-						address += WIDTH;
+						address += proc->term_width;
 					}
 					break;
 				}

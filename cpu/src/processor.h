@@ -19,7 +19,6 @@ const size_t N_REGS = 8;
 const size_t CALL_STACK_SIZE = 16;
 
 const size_t VRAM_ADDR = 10;
-const size_t WIDTH = 240;
 
 struct Processor {
     Stack stack;
@@ -29,6 +28,8 @@ struct Processor {
     size_t ip;
     num_t regs[N_REGS];
 	char *ram;
+	size_t term_width;
+	size_t term_height;
 };
 
 const unsigned char CMD_MASK = 0x1F;

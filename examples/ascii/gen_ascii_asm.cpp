@@ -140,16 +140,29 @@ int getText(const char *filePath, text_t *text) {
 
 const size_t VRAM_ADDR = 10;
 
-int main() {
+int gen_asm(const char *imgPath, unsigned int term_width, unsigned int term_height) {
+	const char *asciiPath = "ascii.txt";
+
+	char *command = (char *)calloc(128, sizeof(*command));
+	sprintf(command, "jp2a --width=%u --height=%u %s > %s\n", term_width, term_height, imgPath, asciiPath); 
+	system(command);
+	free(command);
+
 	text_t text = {};
-    if (getText("ascii.txt", &text) == 0) {
-        fprintf(stderr, "Error getting lines from file %s\n", "ascii.txt");
-        return EXIT_FAILURE;
+
+    if (getText(asciiPath, &text) == 0) {
+        fprintf(stderr, "Error getting lines from file %s\n", asciiPath);
+        return 1;
     }
 
-    FILE *outFile = fopen("ascii.asm", "w");
+	command = (char *)calloc(128, sizeof(*command));
+	sprintf(command, "rm -rf %s",  asciiPath); 
+	system(command);
+	free(command);
+
+    FILE *outFile = fopen("ascii.gasm", "w");
     if (outFile == nullptr) {
-        fprintf(stderr, "Error opening file %s : %s\n", "ascii.asm", strerror(errno));
+        fprintf(stderr, "Error opening file %s : %s\n", "ascii.gasm", strerror(errno));
         freeText(&text);
         return 1;
     }
@@ -163,4 +176,31 @@ int main() {
 	}
 	fprintf(outFile, "draw\njmp next\n");
 	fclose(outFile);
+
+	return 0;
+}
+
+int main(int argc, char **argv) {
+	if (argc < 2) {
+		printf("Please specify an image to convert\n");
+		return 1;
+	}
+
+	const char *imgPath = argv[1];
+
+	FILE *p = popen("tput cols && tput lines", "r");
+
+	if(!p) {
+        fprintf(stderr, "Error opening pipe.\n");
+        return 1;
+    }
+
+	unsigned int term_width = 0;
+	unsigned int term_height = 0;
+	fscanf(p, "%u\n%u\n", &term_width, &term_height);
+	pclose(p);
+
+	if (gen_asm(imgPath, term_width, term_height) != 0) {
+		return 1;
+	}
 }
